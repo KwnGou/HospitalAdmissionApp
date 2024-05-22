@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.9.34902.65
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HospitalAdmissionApp.Server", "Server\HospitalAdmissionApp.Server.csproj", "{4DCAB205-FA17-4473-9C85-C1F256DD01EE}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HospitalAdmissionApp.Server", "Server\HospitalAdmissionApp.Server.csproj", "{4DCAB205-FA17-4473-9C85-C1F256DD01EE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HospitalAdmissionApp.Client", "Client\HospitalAdmissionApp.Client.csproj", "{CF2E4587-D097-49C5-AE3B-CE7630D7829D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HospitalAdmissionApp.Client", "Client\HospitalAdmissionApp.Client.csproj", "{CF2E4587-D097-49C5-AE3B-CE7630D7829D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HospitalAdmissionApp.Shared", "Shared\HospitalAdmissionApp.Shared.csproj", "{043902EB-7B1D-4275-A4D1-D5DEF47F7DC9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HospitalAdmissionApp.Shared", "Shared\HospitalAdmissionApp.Shared.csproj", "{043902EB-7B1D-4275-A4D1-D5DEF47F7DC9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
