@@ -16,49 +16,50 @@ else
 {
     <RadzenDataGrid @ref="@grid" AllowFiltering="@true" AllowSorting="@true" AllowColumnResize="@true" PageSize="10" AllowPaging="@true"
                 FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterMode="FilterMode.Simple" PagerHorizontalAlign="HorizontalAlign.Center"
-                    EditMode="DataGridEditMode.Single" Data="@diseases" TItem="Disease_GridDTO" RowUpdate="@OnUpdateRow" RowCreate="@OnCreateRow">
+                    Data="@diseases" TItem="Disease_GridDTO">
         <Columns>
             <RadzenDataGridColumn TItem="Disease_GridDTO" Title="Disease name" TextAlign="TextAlign.Left" Filterable="@true" Property="@(nameof(Disease_GridDTO.Name))">
-                <EditTemplate Context="dto">
+                @* <EditTemplate Context="dto">
                     <RadzenTextBox @bind-Value="dto.Name" Name="Disease name" Style="width:100%; display: block;" />
-                </EditTemplate>
+                </EditTemplate> *@
             </RadzenDataGridColumn>
             <RadzenDataGridColumn TItem="Disease_GridDTO" Title="Clinic name" TextAlign="TextAlign.Left" Property="@(nameof(Disease_GridDTO.ClinicId))" Filterable="@true">
                 <Template Context="dto">
                     @dto.ClinicName
                 </Template>
-                <EditTemplate Context="dto">
+               @*  <EditTemplate Context="dto">
                     <RadzenDropDown TValue="int" Multiple="@false" Data="@clinics" Placeholder="Select clinic"
                                 TextProperty="@(nameof(Clinic_GridDTO.Name))" ValueProperty="@(nameof(Clinic_GridDTO.Id))"
                                 @bind-Value="@dto.ClinicId" />
-                </EditTemplate>
-                <FilterTemplate Context="dto">
+                </EditTemplate> *@
+                @* <FilterTemplate Context="dto">
                     <RadzenDropDown TValue="int?" AllowClear="true" Multiple="@false" Data="@clinics"
                                 TextProperty="@(nameof(Clinic_GridDTO.Name))" ValueProperty="@(nameof(Clinic_GridDTO.Id))"
                                 @bind-Value="@clinicFilter" Change="async (args) => await OnCategoryFilterChange()" />
-                </FilterTemplate>
+                </FilterTemplate> *@
             </RadzenDataGridColumn>
             <RadzenDataGridColumn TItem="Disease_GridDTO" Filterable="@false" Sortable="@false" TextAlign="TextAlign.Center">
-                <Template Context="dto">
+                @* <Template Context="dto">
                     <RadzenButton Size="ButtonSize.Small" Icon="edit" ButtonStyle="ButtonStyle.Primary" Click="@(async (args) => await Edit(dto))" Disabled="@isEditing" />
-                </Template>
-                <EditTemplate Context="dto">
+                </Template> *@
+               @*  <EditTemplate Context="dto">
                     <RadzenButton icon="save" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Click="@(async (args) => await Save(dto))" />
                     <RadzenButton icon="cancel" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Secondary" Click="@((args) => CancelEdit(dto))" />
-                </EditTemplate>
+                </EditTemplate> *@
             </RadzenDataGridColumn>
             <RadzenDataGridColumn TItem="Disease_GridDTO" Filterable="@false" Sortable="@false" TextAlign="TextAlign.Center">
-                <Template Context="dto">
+                @* <Template Context="dto">
                     <RadzenButton Icon="delete" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger" Click="@(async (args) => await Delete(dto))" Disabled="@isEditing" />
-                </Template>
+                </Template> *@
             </RadzenDataGridColumn>
         </Columns>
     </RadzenDataGrid>
     <br />
-    <RadzenButton Icon="add_circle_outline" Text="Add New Item" ButtonStyle="ButtonStyle.Success" Click="(args) => Add()" Disabled="@isEditing" />
+     @* <RadzenButton Icon="add_circle_outline" Text="Add New Item" ButtonStyle="ButtonStyle.Success" Click="(args) => Add()" Disabled="@isEditing" /> *@
 }
 
-@code {
+@code 
+{
     private RadzenDataGrid<Disease_GridDTO> grid;
     private Clinic_GridDTO[] clinics;
     private Disease_GridDTO[] diseases;
@@ -72,90 +73,90 @@ else
         diseases = await Http.GetFromJsonAsync<Disease_GridDTO[]>("api/Diseas");
     }
 
-    private async Task Edit(Disease_GridDTO dto)
-    {
-        isEditing = true;
-        await grid.EditRow(dto);
-    }
+    // private async Task Edit(Disease_GridDTO dto)
+    // {
+    //     isEditing = true;
+    //     await grid.EditRow(dto);
+    // }
 
-    private async Task Add()
-    {
-        isEditing = true;
-        await grid.InsertRow(new Disease_GridDTO());
-    }
+    // private async Task Add()
+    // {
+    //     isEditing = true;
+    //     await grid.InsertRow(new Disease_GridDTO());
+    // }
 
-    private async Task Save(Disease_GridDTO dto)
-    {
-        await grid.UpdateRow(dto);
-        isEditing = false;
-    }
+    // private async Task Save(Disease_GridDTO dto)
+    // {
+    //     await grid.UpdateRow(dto);
+    //     isEditing = false;
+    // }
 
-    private async Task OnCategoryFilterChange()
-    {
-        grid.Reset();
-        diseases = await Http.GetFromJsonAsync<Disease_GridDTO[]>($"api/Diseas?clinicId={clinicFilter}");
-    }
+    // private async Task OnCategoryFilterChange()
+    // {
+    //     grid.Reset();
+    //     diseases = await Http.GetFromJsonAsync<Disease_GridDTO[]>($"api/Diseas?clinicId={clinicFilter}");
+    // }
 
-    private void CancelEdit(Disease_GridDTO dto)
-    {
-        grid.CancelEditRow(dto);
-        isEditing = false;
-    }
+    // private void CancelEdit(Disease_GridDTO dto)
+    // {
+    //     grid.CancelEditRow(dto);
+    //     isEditing = false;
+    // }
 
-    private async Task OnCreateRow(Disease_GridDTO dto)
-    {
-        Console.WriteLine("In OnCreateRow");
-        var res = await Http.PostAsJsonAsync<Disease_GridDTO>("api/Diseas", dto);
+    // private async Task OnCreateRow(Disease_GridDTO dto)
+    // {
+    //     Console.WriteLine("In OnCreateRow");
+    //     var res = await Http.PostAsJsonAsync<Disease_GridDTO>("api/Diseas", dto);
 
-        if (!res.IsSuccessStatusCode)
-        {
-            NotificationSvc.Notify(
-                NotificationSeverity.Error,
-                "Saving failed",
-                await res.Content.ReadAsStringAsync(),
-                8000);
-            grid.CancelEditRow(dto);
-        }
-        //reload always
-        diseases = await Http.GetFromJsonAsync<Disease_GridDTO[]>("api/Diseas");
-        await grid.Reload();
-    }
+    //     if (!res.IsSuccessStatusCode)
+    //     {
+    //         NotificationSvc.Notify(
+    //             NotificationSeverity.Error,
+    //             "Saving failed",
+    //             await res.Content.ReadAsStringAsync(),
+    //             8000);
+    //         grid.CancelEditRow(dto);
+    //     }
+    //     //reload always
+    //     diseases = await Http.GetFromJsonAsync<Disease_GridDTO[]>("api/Diseas");
+    //     await grid.Reload();
+    // }
 
-    private async Task OnUpdateRow(Disease_GridDTO dto)
-    {
-        var res = await Http.PutAsJsonAsync<Disease_GridDTO>($"api/Diseas/{dto.Id}", dto);
+    // private async Task OnUpdateRow(Disease_GridDTO dto)
+    // {
+    //     var res = await Http.PutAsJsonAsync<Disease_GridDTO>($"api/Diseas/{dto.Id}", dto);
 
-        if (!res.IsSuccessStatusCode)
-        {
-            NotificationSvc.Notify(
-                NotificationSeverity.Error,
-                "Saving failed",
-                await res.Content.ReadAsStringAsync(),
-                8000);
-        }
-        // reload always
-        diseases = await Http.GetFromJsonAsync<Disease_GridDTO[]>("api/Diseas");
-        await grid.Reload();
-    }
+    //     if (!res.IsSuccessStatusCode)
+    //     {
+    //         NotificationSvc.Notify(
+    //             NotificationSeverity.Error,
+    //             "Saving failed",
+    //             await res.Content.ReadAsStringAsync(),
+    //             8000);
+    //     }
+    //     // reload always
+    //     diseases = await Http.GetFromJsonAsync<Disease_GridDTO[]>("api/Diseas");
+    //     await grid.Reload();
+    // }
 
-    private async Task Delete(Disease_GridDTO dto)
-    {
-        var res = await Http.DeleteAsync($"api/Diseas/{dto.Id}");
+    // private async Task Delete(Disease_GridDTO dto)
+    // {
+    //     var res = await Http.DeleteAsync($"api/Diseas/{dto.Id}");
 
-        if (!res.IsSuccessStatusCode)
-        {
-            NotificationSvc.Notify(
-                NotificationSeverity.Error,
-                "Deletion failed",
-                await res.Content.ReadAsStringAsync(),
-                8000);
-        }
-        else
-        {
-            diseases = await Http.GetFromJsonAsync<Disease_GridDTO[]>("api/Diseas");
-            await grid.Reload();
-        }
-        isEditing = false;
+    //     if (!res.IsSuccessStatusCode)
+    //     {
+    //         NotificationSvc.Notify(
+    //             NotificationSeverity.Error,
+    //             "Deletion failed",
+    //             await res.Content.ReadAsStringAsync(),
+    //             8000);
+    //     }
+    //     else
+    //     {
+    //         diseases = await Http.GetFromJsonAsync<Disease_GridDTO[]>("api/Diseas");
+    //         await grid.Reload();
+    //     }
+    //     isEditing = false;
 
-    }
+    // }
 }
