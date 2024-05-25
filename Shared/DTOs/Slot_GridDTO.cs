@@ -1,12 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace HospitalAdmissionApp.Shared.DTOs
 {
-    internal class Slot_GridDTO
+    public class Slot_GridDTO
     {
+        [Key]
+        public int Id { get; set; }
+
+        public int PatientId { get; set; }
+
+        public int BedId { get; set; }
+
+        public string BedInfo { get; set; }
+
+        [Required]
+        public DateTimeOffset AdmissionDate { get; set; }
+        [Required]
+        public DateTimeOffset ReleaseDate { get; set; }
     }
 }
