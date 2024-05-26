@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using HospitalAdmissionApp.Server.Model;
 using AutoMapper;
+using HospitalAdmissionApp.Shared.DTOs;
 
 namespace HospitalAdmissionApp.Server.Controllers
 {
@@ -25,18 +26,25 @@ namespace HospitalAdmissionApp.Server.Controllers
 
         // GET: api/Patients
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Patient>>> GetPatients()
+        public async Task<ActionResult<IEnumerable<Patient_GridDTO>>> GetPatients()
         {
           if (_context.Patients == null)
           {
               return NotFound();
           }
-            return await _context.Patients.ToListAsync();
+          //?
+            List<Patient> result;
+            result = await _context.Patients
+                .Include(p => p.Disease)
+                .ToListAsync();
+            var mapped = _mapper.Map<IEnumerable<Patient_GridDTO>>(result);
+
+            return Ok(mapped);  
         }
 
         // GET: api/Patients/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Patient>> GetPatient(int id)
+        public async Task<ActionResult<Patient_DetailsDTO>> GetPatient(int id)
         {
           if (_context.Patients == null)
           {
@@ -49,53 +57,91 @@ namespace HospitalAdmissionApp.Server.Controllers
                 return NotFound();
             }
 
-            return patient;
+            await _context.Entry(patient).Reference(p => p.Disease)
+                .LoadAsync();
+
+            var mapped = _mapper.Map<Patient_DetailsDTO>(patient);
+
+            return Ok(mapped);
         }
 
         // PUT: api/Patients/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutPatient(int id, Patient patient)
+        public async Task<IActionResult> PutPatient(int id, Patient_DetailsDTO dto)
         {
-            if (id != patient.Id)
+            if (id != dto.Id)
             {
                 return BadRequest();
             }
 
-            _context.Entry(patient).State = EntityState.Modified;
+            //Data Validation
+            var (res, msg) = await ValidateData(dto);
+            if (!res)
+            {
+                return BadRequest(msg);
+            }
+
+            _context.Entry(dto).State = EntityState.Modified;
 
             try
             {
                 await _context.SaveChangesAsync();
             }
-            catch (DbUpdateConcurrencyException)
+            //the application is not going to support multiple users the following exception is not needed at the moment 
+            //catch (DbUpdateConcurrencyException)
+            //{
+            //    if (!DiseasExists(id))
+            //    {
+            //        return NotFound();
+            //    }
+            //    else
+            //    {
+            //        throw;
+            //    }
+            //}
+            catch (DbUpdateException ex)
             {
-                if (!PatientExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+                return BadRequest($"{ex.Message}: {ex?.InnerException?.Message}");
             }
-
             return NoContent();
         }
 
         // POST: api/Patients
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Patient>> PostPatient(Patient patient)
+        public async Task<ActionResult<Patient>> PostPatient(Patient_DetailsDTO dto)
         {
           if (_context.Patients == null)
           {
               return Problem("Entity set 'DataContext.Patients'  is null.");
           }
-            _context.Patients.Add(patient);
-            await _context.SaveChangesAsync();
+            var entity = _mapper.Map<Patient>(dto);
 
-            return CreatedAtAction("GetPatient", new { id = patient.Id }, patient);
+            //Data Validation
+            var (res, msg) = await ValidateData(dto);
+            if (!res)
+            {
+                return BadRequest(msg);
+            }
+
+            _context.Patients.Add(entity);
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex)
+            {
+                return BadRequest($"{ex.Message}: {ex?.InnerException?.Message}");
+            }
+
+            await _context.Entry(entity).Reference(p => p.Disease)
+                .LoadAsync();
+
+            var mapped = _mapper.Map<Patient_DetailsDTO>(entity);
+
+            return CreatedAtAction("GetPatient", new { id = mapped.Id }, mapped);
         }
 
         // DELETE: api/Patients/5
@@ -113,7 +159,14 @@ namespace HospitalAdmissionApp.Server.Controllers
             }
 
             _context.Patients.Remove(patient);
-            await _context.SaveChangesAsync();
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex)
+            {
+                return BadRequest($"{ex.Message}: {ex?.InnerException?.Message}");
+            }
 
             return NoContent();
         }
@@ -121,6 +174,37 @@ namespace HospitalAdmissionApp.Server.Controllers
         private bool PatientExists(int id)
         {
             return (_context.Patients?.Any(e => e.Id == id)).GetValueOrDefault();
+        }
+
+        private async Task<(bool result, string message)> ValidateData(Patient_DetailsDTO dto)
+        {
+            if (string.IsNullOrWhiteSpace(dto.Name))
+            {
+                return (false, "Patient name is required.");
+            }
+
+            dto.Name.Trim();
+
+            if (string.IsNullOrWhiteSpace(dto.Surname))
+            {
+                return (false, "Patient surname is required.");
+            }
+
+            dto.Surname.Trim();
+
+            if (string.IsNullOrWhiteSpace(dto.PatientIdentityCard))
+            {
+                return (false, "Patient PatientIdentityCard is required.");
+            }
+
+            dto.PatientIdentityCard.Trim();
+
+            if (await _context.Patients.AnyAsync(p => p.PatientIdentityCard == dto.PatientIdentityCard))
+            {
+                return (false, "Specified Identity Card is already in use.");
+            }
+
+            return (true, string.Empty);
         }
     }
 }
