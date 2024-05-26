@@ -1,0 +1,110 @@
+﻿@page "/clinics"
+@using HospitalAdmissionApp.Shared.DTOs
+@inject HttpClient Http
+@inject NotificationService NotificationSvc
+
+
+<PageTitle>Clinics</PageTitle>
+
+<h1> Clinics</h1>
+
+@if (isLoading)
+{
+    <em>Loading ...</em>
+}
+else
+{
+    <div class="rz-p-sm-12 rz-text-align-left">
+        <RadzenLabel Text="Select Clinic" Component="DropDownBindValue" Style="margin-right: 8px; vertical-align: middle;" />
+        <RadzenDropDown TValue="int?" Data="@clinics" @ref="clinicsGrid" @bind-SelectedItem="@selectedClinic" @bind-Value="@selectedClinicId"
+                        ValueProperty="@(nameof(Clinic_GridDTO.Id))"
+                        Style="width: 100%; max-width: 400px;" Name="DropDownBindValue" />
+    </div>
+
+  @*   <div style="display: flex; align-items: center; margin-bottom: 16px">
+        <div style="white-space:nowrap; margin-right: 16px">ExpandMode:</div>
+        <RadzenSelectBar @bind-Value="@expandMode" TextProperty="Text" ValueProperty="Value" style="margin-right: 16px"
+                         Data="@(Enum.GetValues(typeof(DataGridExpandMode)).Cast<DataGridExpandMode>().Select(t => new { Text = $"{t}", Value = t }))" Size="ButtonSize.Small" />
+        <RadzenButton Text="Expand all rows" Click="@(args => ToggleRowsExpand(true))" style="margin-right: 16px"
+                      Disabled=@(allRowsExpanded == true || expandMode == DataGridExpandMode.Single) />
+        <RadzenButton Text="Collapse all rows" Click="@(args => ToggleRowsExpand(false))"
+                      Disabled=@(allRowsExpanded == false || expandMode == DataGridExpandMode.Single) />
+    </div> *@
+    <RadzenDataGrid @ref="roomsGrid" AllowFiltering="true" AllowPaging="true" PageSize="5" AllowSorting="true" RowRender="@RowRender" ExpandMode="@expandMode"
+                    Data="@rooms" TItem="Room_GridDTO">
+        <Template Context="room">
+            <RadzenCard Style="margin-bottom:20px">
+                Room number:
+                <b>@room.RoomNumber</b>
+            </RadzenCard>
+        </Template>
+        <Columns>
+            <RadzenDataGridColumn TItem="Room_GridDTO" Title="Room number" Property="@nameof(Room_GridDTO.RoomNumber)" Width="120px" />
+        </Columns>
+    </RadzenDataGrid>
+}
+
+
+@code {
+    private bool isLoading;
+
+    private RadzenDropDown<int?> clinicsGrid;
+    private Clinic_GridDTO[] clinics;
+    private object selectedClinic;
+    private int? selectedClinicId;
+
+    private RadzenDataGrid<Room_GridDTO> roomsGrid;
+    private Room_GridDTO[] rooms;
+
+    private RadzenDataGrid<Bed_GridDTO> bedsGrid;
+    private Bed_GridDTO[] beds;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        isLoading = true;
+        clinics = await Http.GetFromJsonAsync<Clinic_GridDTO[]>("api/clinics");
+
+        isLoading = false;
+        StateHasChanged();
+        if (selectedClinicId.HasValue)
+        {
+            rooms = await Http.GetFromJsonAsync<Room_GridDTO[]>("api/rooms");
+            beds = await Http.GetFromJsonAsync<Bed_GridDTO[]>("api/beds");
+            StateHasChanged();
+        }
+    }
+
+    DataGridExpandMode expandMode = DataGridExpandMode.Single;
+    bool? allRowsExpanded;
+
+    async Task ToggleRowsExpand(bool? value)
+    {
+        allRowsExpanded = value;
+
+        if (value == true)
+        {
+            await grid.ExpandRows(grid.PagedView);
+        }
+        else if (value == false)
+        {
+            await grid.CollapseRows(grid.PagedView);
+        }
+    }
+
+
+    void RowRender(RowRenderEventArgs<Room_GridDTO> room)
+    {
+        room.Expandable = room.Expandable;
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        base.OnAfterRender(firstRender);
+
+        if (firstRender)
+        {
+            await grid.ExpandRow(rooms.FirstOrDefault());
+        }
+    }
+}

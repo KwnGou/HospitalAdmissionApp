@@ -1,0 +1,65 @@
+﻿@page "/patientForm"
+@using HospitalAdmissionApp.Shared.DTOs
+@inject HttpClient Http
+@inject NotificationService NotificationSvc
+
+<PageTitle>Patient form</PageTitle>
+
+@if (isNew == false)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div Class="rz-p-0 rz-p-md-12">
+        <RadzenColumn Size="12" SizeSM="6">
+            <RadzenStack>
+                <RadzenFormField  Text="Name" Variant="@patient.Name">
+                    <RadzenTextBox @bind-Value="@patient.Name" />
+                </RadzenFormField>
+                <RadzenFormField Text="Surname" Variant="@patient">
+                    <RadzenTextBox @bind-Value="@patient.Surname" />
+                </RadzenFormField>
+                <RadzenFormField Text="Age" Variant="@patient">
+                    <RadzenTextBox @bind-Value="@patient.Age" />
+                </RadzenFormField>
+            </RadzenStack>
+        </RadzenColumn>
+        <RadzenColumn Size="12" SizeSM="6">
+            <RadzenFormField Text="Sex" Variant="@patient">
+                <RadzenRadioButtonList @bind-Value=@patient.Sex TValue="int" class="rz-m-4 rz-mt-8">
+                    <Items>
+                        <RadzenRadioButtonListItem Text="Male" Value="1" />
+                        <RadzenRadioButtonListItem Text="Female" Value="2" />
+                    </Items>
+                </RadzenRadioButtonList>
+            </RadzenFormField>
+            <RadzenFormField Text="Insurance" Variant="@patient">
+                <RadzenRadioButtonList @bind-Value=@patient.Insurance TValue="int" class="rz-m-4 rz-mt-8">
+                    <Items>
+                        <RadzenRadioButtonListItem Text="1" Value="1" />
+                        <RadzenRadioButtonListItem Text="2" Value="2" />
+                        <RadzenRadioButtonListItem Text="2" Value="2" />
+                    </Items>
+                </RadzenRadioButtonList>
+            </RadzenFormField>
+            <RadzenFormField Text="Patient Details" Variant="@patient">
+                <RadzenTextArea @bind-Value="@patient.PatientDetails" />
+            </RadzenFormField>
+        </RadzenColumn>
+    </div>
+}
+@code {
+    private bool isNew;
+
+    private Patient_DetailsDTO patient;
+     protected override async Task OnInitializedAsync()
+    {
+        isNew = true;
+        patient = await Http.GetFromJsonAsync<Patient_DetailsDTO[]>("api/patients");
+
+        isNew = false;
+        StateHasChanged();
+        
+    }
+}
