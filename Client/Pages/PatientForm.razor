@@ -1,65 +1,120 @@
 ﻿@page "/patientForm"
 @using HospitalAdmissionApp.Shared.DTOs
 @inject HttpClient Http
+@inject DialogService DialogSvc
 @inject NotificationService NotificationSvc
+@inject NavigationManager NavMan
 
 <PageTitle>Patient form</PageTitle>
 
-@if (isNew == false)
+@if (isLoading)
 {
     <p><em>Loading...</em></p>
 }
 else
 {
     <div Class="rz-p-0 rz-p-md-12">
-        <RadzenColumn Size="12" SizeSM="6">
-            <RadzenStack>
-                <RadzenFormField  Text="Name" Variant="@patient.Name">
-                    <RadzenTextBox @bind-Value="@patient.Name" />
+        <RadzenTemplateForm TItem="Patient_DetailsDTO" Submit="@async (args) => await Save(DTO))">
+            <RadzenColumn Size="12" SizeSM="6">
+                <RadzenStack Titem="Patient_DetialsDTO" Data="@DTO">
+                    <RadzenFormField Text="Name">
+                        <RadzenTextBox @bind-Value="DTO.Name" Name="Patient Name" />
+                        @DTO.name
+                    </RadzenFormField>
+                    <RadzenFormField Text="Surname">
+                        <RadzenTextBox @bind-Value="DTO.Surname" Name="Patient Surname" />
+                        @DTO.Surname
+                    </RadzenFormField>
+                    <RadzenFormField Text="Age" >
+                        <RadzenTextBox @bind-Value="DTO.Age" Name="Patient Age" TValue="int" />
+                        @DTO.Age
+                    </RadzenFormField>
+                </RadzenStack>
+            </RadzenColumn>
+            <RadzenColumn Size="12" SizeSM="6">
+                <RadzenFormField Text="Sex">
+                    <RadzenRadioButtonList @bind-Value=@DTO.Sex TValue="string" class="rz-m-4 rz-mt-8">
+                        <Items>
+                            <RadzenRadioButtonListItem Text="Male" Value="1" />
+                            <RadzenRadioButtonListItem Text="Female" Value="2" />
+                            @DTO.Sex
+                        </Items>
+                    </RadzenRadioButtonList>
                 </RadzenFormField>
-                <RadzenFormField Text="Surname" Variant="@patient">
-                    <RadzenTextBox @bind-Value="@patient.Surname" />
+                <RadzenFormField Text="Insurance">
+                    <RadzenRadioButtonList @bind-Value=@DTO.Insurance TValue="int" class="rz-m-4 rz-mt-8">
+                        <Items>
+                            <RadzenRadioButtonListItem Text="1" Value="1" />
+                            <RadzenRadioButtonListItem Text="2" Value="2" />
+                            <RadzenRadioButtonListItem Text="2" Value="2" />
+                            @DTO.Insurance
+                        </Items>
+                    </RadzenRadioButtonList>
                 </RadzenFormField>
-                <RadzenFormField Text="Age" Variant="@patient">
-                    <RadzenTextBox @bind-Value="@patient.Age" />
+                <RadzenFormField Text="Patient Details">
+                    <RadzenTextArea @bind-Value="@DTO.PatientDetails" Name="Patient Details"/>
+                    @DTO.PatientDetails
                 </RadzenFormField>
-            </RadzenStack>
-        </RadzenColumn>
-        <RadzenColumn Size="12" SizeSM="6">
-            <RadzenFormField Text="Sex" Variant="@patient">
-                <RadzenRadioButtonList @bind-Value=@patient.Sex TValue="int" class="rz-m-4 rz-mt-8">
-                    <Items>
-                        <RadzenRadioButtonListItem Text="Male" Value="1" />
-                        <RadzenRadioButtonListItem Text="Female" Value="2" />
-                    </Items>
-                </RadzenRadioButtonList>
-            </RadzenFormField>
-            <RadzenFormField Text="Insurance" Variant="@patient">
-                <RadzenRadioButtonList @bind-Value=@patient.Insurance TValue="int" class="rz-m-4 rz-mt-8">
-                    <Items>
-                        <RadzenRadioButtonListItem Text="1" Value="1" />
-                        <RadzenRadioButtonListItem Text="2" Value="2" />
-                        <RadzenRadioButtonListItem Text="2" Value="2" />
-                    </Items>
-                </RadzenRadioButtonList>
-            </RadzenFormField>
-            <RadzenFormField Text="Patient Details" Variant="@patient">
-                <RadzenTextArea @bind-Value="@patient.PatientDetails" />
-            </RadzenFormField>
-        </RadzenColumn>
+            </RadzenColumn>
+        </RadzenTemplateForm>
     </div>
 }
 @code {
-    private bool isNew;
+    private bool isLoading;
 
-    private Patient_DetailsDTO patient;
-     protected override async Task OnInitializedAsync()
+    private Patient_DetailsDTO[] patients;
+
+    [Parameter]
+    public Patient_DetailsDTO DTO{ get; set; }
+    [Parameter]
+    private bool IsNew{ get; set; }
+
+    protected override async Task OnInitializedAsync()
     {
-        isNew = true;
-        patient = await Http.GetFromJsonAsync<Patient_DetailsDTO[]>("api/patients");
+        isLoading = true;
+        patients = await Http.GetFromJsonAsync<Patient_DetailsDTO[]>("api/patients");
 
-        isNew = false;
+        isLoading = false;
         StateHasChanged();
-        
+
+    }
+
+    private async Task Save(Patient_DetailsDTO dto)
+    {
+        HttpResponseMessage res;
+        if (IsNew)
+        {
+            res = await Http.PostAsJsonAsync<Patient_DetailsDTO>("api/patients", dto);
+        }
+        else
+        {
+            res = await Http.PutAsJsonAsync<Patient_DetailsDTO>($"api/plates/{dto.Id}", dto);
+        }
+
+        if (!res.IsSuccessStatusCode)
+        {
+            var errMsg = await res.Content.ReadAsStringAsync();
+            NotificationSvc.Notify(
+                NotificationSeverity.Error,
+                "Saving failed",
+                errMsg,
+                8000);
+            Console.WriteLine($"Save error: {errMsg}");
+        }
+        else
+        {
+            DialogSvc.Close(true);
+            if (IsNew)
+            {
+                var newPatient = await res.Content.ReadFromJsonAsync<Patient_DetailsDTO>();
+                NavMan.NavigateTo($"patients/{newPatient.Id}");
+            }
+
+        }
+    }
+
+    private async Task DeletePatient(Patient_DetailsDTO patDto)
+    {
+        DTO.patients.Remove(patDto);
     }
 }
