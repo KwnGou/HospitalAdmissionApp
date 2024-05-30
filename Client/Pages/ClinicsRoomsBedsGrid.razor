@@ -20,19 +20,15 @@ else
                         ValueProperty="@(nameof(Clinic_GridDTO.Id))"
                         Style="width: 100%; max-width: 400px;" Name="DropDownBindValue" />
     </div>
-
-  @*   <div style="display: flex; align-items: center; margin-bottom: 16px">
-        <div style="white-space:nowrap; margin-right: 16px">ExpandMode:</div>
-        <RadzenSelectBar @bind-Value="@expandMode" TextProperty="Text" ValueProperty="Value" style="margin-right: 16px"
-                         Data="@(Enum.GetValues(typeof(DataGridExpandMode)).Cast<DataGridExpandMode>().Select(t => new { Text = $"{t}", Value = t }))" Size="ButtonSize.Small" />
-        <RadzenButton Text="Expand all rows" Click="@(args => ToggleRowsExpand(true))" style="margin-right: 16px"
-                      Disabled=@(allRowsExpanded == true || expandMode == DataGridExpandMode.Single) />
-        <RadzenButton Text="Collapse all rows" Click="@(args => ToggleRowsExpand(false))"
-                      Disabled=@(allRowsExpanded == false || expandMode == DataGridExpandMode.Single) />
-    </div> *@
+    <div class="rz-p-sm-12 rz-text-align-left">
     <RadzenDataGrid @ref="roomsGrid" AllowFiltering="true" AllowPaging="true" PageSize="5" AllowSorting="true" RowRender="@RowRender" ExpandMode="@expandMode"
                     Data="@rooms" TItem="Room_GridDTO">
         <Template Context="room">
+            <RadzenDataGrid TItem="Bed_GridDTO" Data="beds" AllowSorting="true" AllowColumnResize="true">
+                <Columns>
+                    <RadzenDataGridColumn TItem="Bed_GridDTO" Property="@nameof(Bed_GridDTO.BedInfo)" Title="Bed information"></RadzenDataGridColumn>
+                </Columns>
+            </RadzenDataGrid>
             <RadzenCard Style="margin-bottom:20px">
                 Room number:
                 <b>@room.RoomNumber</b>
@@ -42,6 +38,7 @@ else
             <RadzenDataGridColumn TItem="Room_GridDTO" Title="Room number" Property="@nameof(Room_GridDTO.RoomNumber)" Width="120px" />
         </Columns>
     </RadzenDataGrid>
+    </div>
 }
 
 
@@ -84,11 +81,11 @@ else
 
         if (value == true)
         {
-            await grid.ExpandRows(grid.PagedView);
+            await roomsGrid.ExpandRows(roomsGrid.PagedView);
         }
         else if (value == false)
         {
-            await grid.CollapseRows(grid.PagedView);
+            await roomsGrid.CollapseRows(roomsGrid.PagedView);
         }
     }
 
@@ -104,7 +101,7 @@ else
 
         if (firstRender)
         {
-            await grid.ExpandRow(rooms.FirstOrDefault());
+            await roomsGrid.ExpandRow(rooms.FirstOrDefault());
         }
     }
 }

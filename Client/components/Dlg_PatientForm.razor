@@ -5,8 +5,6 @@
 @inject NotificationService NotificationSvc
 @inject NavigationManager NavMan
 
-<PageTitle>Patient form</PageTitle>
-
 @if (isLoading)
 {
     <p><em>Loading...</em></p>
@@ -14,9 +12,9 @@
 else
 {
     <div Class="rz-p-0 rz-p-md-12">
-        <RadzenTemplateForm TItem="Patient_DetailsDTO" Submit="@async (args) => await Save(DTO))">
+        <RadzenTemplateForm TItem="Patient_EditDTO" Data="@DTO" Submit="@async (args) => await Save(DTO))">
             <RadzenColumn Size="12" SizeSM="6">
-                <RadzenStack Titem="Patient_DetialsDTO" Data="@DTO">
+                <RadzenStack>
                     <RadzenFormField Text="Name">
                         <RadzenTextBox @bind-Value="DTO.Name" Name="Patient Name" />
                         @DTO.Name
@@ -25,13 +23,17 @@ else
                         <RadzenTextBox @bind-Value="DTO.Surname" Name="Patient Surname" />
                         @DTO.Surname
                     </RadzenFormField>
-                    <RadzenFormField Text="Age" >
+                    <RadzenFormField Text="Age">
                         <RadzenNumeric @bind-Value="DTO.Age" Name="Patient Age" />
                         @DTO.Age
                     </RadzenFormField>
                 </RadzenStack>
             </RadzenColumn>
             <RadzenColumn Size="12" SizeSM="6">
+                <RadzenDropDown TValue="int?" Data="@diseases" @ref="diseasesGrid" @bind-SelectedItem="@selectedDisease" @bind-Value="@selectedDiseaseId"
+                                ValueProperty="@(nameof(Disease_GridDTO.Id))"
+                                Style="width: 100%; max-width: 400px;" Name="DropDownBindValue" />
+                                @DTO.DiseaseName
                 <RadzenFormField Text="Sex">
                     <RadzenRadioButtonList @bind-Value=@DTO.Sex TValue="string" class="rz-m-4 rz-mt-8">
                         <Items>
@@ -52,7 +54,7 @@ else
                     </RadzenRadioButtonList>
                 </RadzenFormField>
                 <RadzenFormField Text="Patient Details">
-                    <RadzenTextArea @bind-Value="@DTO.PatientDetails" Name="Patient Details"/>
+                    <RadzenTextArea @bind-Value="@DTO.PatientDetails" Name="Patient Details" />
                     @DTO.PatientDetails
                 </RadzenFormField>
             </RadzenColumn>
@@ -62,18 +64,24 @@ else
 @code {
     private bool isLoading;
 
+    [Parameter]
+    private Patient_EditDTO DTO { get; set; }
+
     private Patient_DetailsDTO[] patients;
 
+    private RadzenDropDown<int?> diseasesGrid;
+    private int? selectedDiseaseId;
+    private Disease_GridDTO[] diseases;
+    private object selectedDisease;
+
     [Parameter]
-    public Patient_DetailsDTO DTO{ get; set; }
-    [Parameter]
-    public bool IsNew{ get; set; }
+    public bool IsNew { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
         isLoading = true;
         patients = await Http.GetFromJsonAsync<Patient_DetailsDTO[]>("api/patients");
-
+        diseases = await Http.GetFromJsonAsync<Disease_GridDTO[]>("api/diseas");
         isLoading = false;
         StateHasChanged();
 

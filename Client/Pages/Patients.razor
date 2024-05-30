@@ -1,0 +1,96 @@
+﻿@page "/patients"
+@using HospitalAdmissionApp.Shared.DTOs
+@inject HttpClient Http
+@inject NotificationService NotificationSvc
+
+
+<PageTitle>Patients</PageTitle>
+
+<h1>Patients</h1>
+
+@if (patients == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <RadzenDataGrid @ref="@grid" AllowFiltering="@true" AllowSorting="@true" AllowColumnResize="@true" PageSize="10" AllowPaging="@true"
+                    FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterMode="FilterMode.Simple" PagerHorizontalAlign="HorizontalAlign.Center"
+                    Data="@patients" TItem="Patient_GridDTO">
+        <Columns>
+            <RadzenDataGridColumn TItem="Patient_GridDTO" Title="Patient name" TextAlign="TextAlign.Left" Filterable="@true" Property="@(nameof(Patient_GridDTO.Name))" />
+            <RadzenDataGridColumn TItem="Patient_GridDTO" Title="Patient Surname" TextAlign="TextAlign.Left" Filterable="@true" Property="@(nameof(Patient_GridDTO.Surname))" />
+            <RadzenDataGridColumn TItem="Patient_GridDTO" Title="Disease name" TextAlign="TextAlign.Left" Property="@(nameof(Patient_GridDTO.DiseaseName))" Filterable="@true">
+                <Template Context="dto">
+                    @dto.DiseaseName
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="Patient_GridDTO" Filterable="@false" Sortable="@false" TextAlign="TextAlign.Center">
+                <Template Context="dto">
+                    <RadzenButton Size="ButtonSize.Small" Icon="edit" ButtonStyle="ButtonStyle.Primary" Click="@(async (args) => await Edit(dto))" />
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="Patient_GridDTO" Filterable="@false" Sortable="@false" TextAlign="TextAlign.Center">
+                <Template Context="dto">
+                    <RadzenButton Icon="delete" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Danger" Click="@(async (args) => await Delete(dto))" />
+                </Template>
+            </RadzenDataGridColumn>
+        </Columns>
+    </RadzenDataGrid>
+    <br />
+    <RadzenButton Icon="add_circle_outline" Text="Add New Patient" ButtonStyle="ButtonStyle.Success" Click="(args) => Add()" />
+}
+
+@code
+{
+    private RadzenDataGrid<Patient_GridDTO> grid;
+    private Patient_GridDTO[] patients;
+    private Disease_GridDTO[] diseases;
+    //private Slot_GridDTO[] slots;
+
+    // category filter
+    private int? diseaseFilter;
+
+    protected override async Task OnInitializedAsync()
+    {
+        patients = await Http.GetFromJsonAsync<Patient_GridDTO[]>("api/patients");
+        diseases = await Http.GetFromJsonAsync<Disease_GridDTO[]>("api/Diseas");
+        //slots = await Http.GetFromJsonAsync<Slot_GridDTO[]>("api/slots");
+    }
+
+    private async Task Edit(Patient_GridDTO dto)
+    {
+
+    }
+
+    private async Task Add()
+    {
+
+    }
+
+    private async Task OnCategoryFilterChange()
+    {
+        grid.Reset();
+        patients = await Http.GetFromJsonAsync<Patient_GridDTO[]>($"api/patients?diseaseId={diseaseFilter}");
+    }
+
+    private async Task Delete(Patient_GridDTO dto)
+    {
+        var res = await Http.DeleteAsync($"api/patients/{dto.Id}");
+
+        if (!res.IsSuccessStatusCode)
+        {
+            NotificationSvc.Notify(
+                NotificationSeverity.Error,
+                "Deletion failed",
+                await res.Content.ReadAsStringAsync(),
+                8000);
+        }
+        else
+        {
+            patients = await Http.GetFromJsonAsync<Patient_GridDTO[]>("api/patients");
+            await grid.Reload();
+        }
+
+    }
+}
