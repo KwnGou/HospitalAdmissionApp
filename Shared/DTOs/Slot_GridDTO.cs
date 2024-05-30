@@ -18,6 +18,12 @@ namespace HospitalAdmissionApp.Shared.DTOs
 
         public string BedInfo { get; set; }
 
+        public string PatientName {  get; set; }
+
+        public string PatientSurname { get; set;}
+
+        public string PatientDisease { get; set;}
+
         [Required]
         public DateTimeOffset AdmissionDate { get; set; }
         [Required]

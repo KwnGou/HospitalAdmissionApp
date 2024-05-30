@@ -14,6 +14,8 @@ namespace HospitalAdmissionApp.Shared.DTOs
 
         public int RoomId { get; set; }
 
+        public string RoomNumber { get; set; }
+
         public string BedInfo { get; set; } = null!;
     }
 }

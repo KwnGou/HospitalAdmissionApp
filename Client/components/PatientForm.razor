@@ -19,14 +19,14 @@ else
                 <RadzenStack Titem="Patient_DetialsDTO" Data="@DTO">
                     <RadzenFormField Text="Name">
                         <RadzenTextBox @bind-Value="DTO.Name" Name="Patient Name" />
-                        @DTO.name
+                        @DTO.Name
                     </RadzenFormField>
                     <RadzenFormField Text="Surname">
                         <RadzenTextBox @bind-Value="DTO.Surname" Name="Patient Surname" />
                         @DTO.Surname
                     </RadzenFormField>
                     <RadzenFormField Text="Age" >
-                        <RadzenTextBox @bind-Value="DTO.Age" Name="Patient Age" TValue="int" />
+                        <RadzenNumeric @bind-Value="DTO.Age" Name="Patient Age" />
                         @DTO.Age
                     </RadzenFormField>
                 </RadzenStack>
@@ -67,7 +67,7 @@ else
     [Parameter]
     public Patient_DetailsDTO DTO{ get; set; }
     [Parameter]
-    private bool IsNew{ get; set; }
+    public bool IsNew{ get; set; }
 
     protected override async Task OnInitializedAsync()
     {

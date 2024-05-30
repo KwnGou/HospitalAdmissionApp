@@ -13,6 +13,33 @@ namespace HospitalAdmissionApp.Server.Model
             CreateMap<Diseas, Disease_GridDTO>()
                 .ForMember(dest => dest.ClinicName, opt => opt.MapFrom(src => src.Clinic.Name))
                 .ReverseMap();
+
+            CreateMap<Room, Room_GridDTO>()
+                .ForMember(dest => dest.ClinicName, opt => opt.MapFrom(src => src.Clinic.Name))
+                .ReverseMap();
+
+            CreateMap<Bed, Bed_GridDTO>()
+                .ForMember(dest => dest.RoomNumber, opt => opt.MapFrom(src => src.Room.RoomNumber))
+                .ReverseMap();
+
+            CreateMap<Slot, Slot_GridDTO>()
+                .ForMember(dest => dest.BedInfo, opt => opt.MapFrom(src => src.Bed.BedInfo))
+                .ForMember(dest => dest.PatientName, opt => opt.MapFrom(src => src.Patient.Name))
+                .ForMember(dest => dest.PatientSurname, opt => opt.MapFrom(src => src.Patient.Surname))
+                .ForMember(dest => dest.PatientDisease, opt => opt.MapFrom(src => src.Patient.Disease))
+                .ReverseMap();
+
+            CreateMap<Patient, Patient_DetailsDTO>()
+                .ForMember(dest => dest.DiseaseName, opt => opt.MapFrom(src => src.Disease.Name))
+                .ReverseMap();
+
+            CreateMap<Patient, Patient_EditDTO>()
+                .ForMember(dest => dest.DiseaseName, opt => opt.MapFrom(src => src.Disease.Name))
+                .ReverseMap();
+
+            CreateMap<Patient, Patient_GridDTO>()
+                .ForMember(dest => dest.DiseaseName, opt => opt.MapFrom(src => src.Disease.Name))
+                .ReverseMap();
         }
     }
 }
