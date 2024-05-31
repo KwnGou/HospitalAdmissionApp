@@ -10,6 +10,7 @@ using AutoMapper;
 using HospitalAdmissionApp.Shared.DTOs;
 using HospitalAdmissionApp.Client.Pages;
 using Microsoft.AspNetCore.Http.HttpResults;
+using NuGet.Protocol;
 
 namespace HospitalAdmissionApp.Server.Controllers
 {
@@ -80,6 +81,15 @@ namespace HospitalAdmissionApp.Server.Controllers
             var mapped = _mapper.Map<Slot_GridDTO>(slot);
 
             return Ok(mapped);
+        }
+
+        // GET: api/Slots/patientId
+        [HttpGet("patientId")]
+        public async Task<ActionResult<Slot_GridDTO>> GetPatientSlot(int id)
+        {
+            var result = await _context.Slots.Where(s => s.PatientId == id).;
+
+            return Ok(result);
         }
 
         // PUT: api/Slots/5

@@ -1,5 +1,111 @@
-﻿<h3>PatientDetails</h3>
+﻿@page "/PatientDetails/{Id:int}/{OpenEdit:bool?}"
+@using HospitalAdmissionApp.Shared.DTOs
 
-@code {
+@inject HttpClient Http
+@inject NotificationService NotificationSvc
+@inject DialogService DlgService
+@inject NavigationManager NavMan
+@inject TooltipService TooltipSvc
 
+<PageTitle>Patient Details</PageTitle>
+
+<h1>Patient Details</h1>
+
+@if (DTO == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-3 col-sm-12">
+            Patient Name:
+        </div>
+        <div class="col-md-9 col-sm-12">
+            @DTO.Name
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-3 col-sm-12">
+            Patient Surname:
+        </div>
+        <div class="col-md-9 col-sm-12">
+            @DTO.Surname
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-3 col-sm-12">
+            Patient identity card:
+        </div>
+        <div class="col-md-9 col-sm-12">
+            @DTO.PatientIdentityCard
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-3 col-sm-12">
+            Patient Age:
+        </div>
+        <div class="col-md-9 col-sm-12">
+            @DTO.Age
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-3 col-sm-12">
+            Patient Sex:
+        </div>
+        <div class="col-md-9 col-sm-12">
+            @DTO.Sex
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-3 col-sm-12">
+            Patient Disease:
+        </div>
+        <div class="col-md-9 col-sm-12">
+            @DTO.DiseaseName
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-3 col-sm-12">
+            Patient insurance:
+        </div>
+        <div class="col-md-9 col-sm-12">
+            @DTO.Insurance
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-3 col-sm-12">
+            Patient details:
+        </div>
+        <div class="col-md-9 col-sm-12">
+            @DTO.PatientDetails
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-3 col-sm-12">
+            Patient admission date:
+        </div>
+        <div class="col-md-9 col-sm-12">
+            @DTOSlot.AdmissionDate
+        </div>
+    </div>
+}
+@code
+{
+    [Parameter]
+    public int Id { get; set; }
+
+    [Parameter]
+    public bool? OpenEdit { get; set; }
+
+    private RadzenDataGrid<Patient_DetailsDTO> grid;
+    private Patient_DetailsDTO DTO;
+
+    private Slot_GridDTO DTOSlot;
+
+    protected override async Task OnInitializedAsync()
+    {
+        DTO = await Http.GetFromJsonAsync<Patient_DetailsDTO>($"api/patients/{Id}");
+        DTOSlot = await Http.GetFromJsonAsync<Slot_GridDTO>($"api/slots/{Id}");
+    }
 }

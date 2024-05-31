@@ -12,7 +12,7 @@
 else
 {
     <div Class="rz-p-0 rz-p-md-12">
-        <RadzenTemplateForm TItem="Patient_EditDTO" Data="@DTO" Submit="@async (args) => await Save(DTO))">
+        <RadzenTemplateForm TItem="Patient_EditDTO" Data="@DTO">
             <RadzenColumn Size="12" SizeSM="6">
                 <RadzenStack>
                     <RadzenFormField Text="Name">
@@ -65,7 +65,7 @@ else
     private bool isLoading;
 
     [Parameter]
-    private Patient_EditDTO DTO { get; set; }
+    public Patient_EditDTO DTO { get; set; }
 
     private Patient_DetailsDTO[] patients;
 
@@ -123,6 +123,6 @@ else
 
     private async Task DeletePatient(Patient_DetailsDTO patDto)
     {
-        DTO.patients.Remove(patDto);
+        
     }
 }

@@ -68,7 +68,7 @@ namespace HospitalAdmissionApp.Server.Controllers
         // PUT: api/Patients/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutPatient(int id, Patient_DetailsDTO dto)
+        public async Task<IActionResult> PutPatient(int id, Patient_EditDTO dto)
         {
             if (id != dto.Id)
             {
@@ -76,11 +76,26 @@ namespace HospitalAdmissionApp.Server.Controllers
             }
 
             //Data Validation
-            var (res, msg) = await ValidateData(dto);
-            if (!res)
+            if (string.IsNullOrWhiteSpace(dto.Name))
             {
-                return BadRequest(msg);
+                return Problem("Patient name is required.");
             }
+
+            dto.Name.Trim();
+
+            if (string.IsNullOrWhiteSpace(dto.Surname))
+            {
+                return Problem("Patient surname is required.");
+            }
+
+            dto.Surname.Trim();
+
+            if (string.IsNullOrWhiteSpace(dto.PatientIdentityCard))
+            {
+                return Problem("Patient PatientIdentityCard is required.");
+            }
+
+            dto.PatientIdentityCard.Trim();
 
             _context.Entry(dto).State = EntityState.Modified;
 
@@ -119,10 +134,30 @@ namespace HospitalAdmissionApp.Server.Controllers
             var entity = _mapper.Map<Patient>(dto);
 
             //Data Validation
-            var (res, msg) = await ValidateData(dto);
-            if (!res)
+            if (string.IsNullOrWhiteSpace(dto.Name))
             {
-                return BadRequest(msg);
+                return Problem("Patient name is required.");
+            }
+
+            dto.Name.Trim();
+
+            if (string.IsNullOrWhiteSpace(dto.Surname))
+            {
+                return Problem("Patient surname is required.");
+            }
+
+            dto.Surname.Trim();
+
+            if (string.IsNullOrWhiteSpace(dto.PatientIdentityCard))
+            {
+                return Problem("Patient PatientIdentityCard is required.");
+            }
+
+            dto.PatientIdentityCard.Trim();
+
+            if (await _context.Patients.AnyAsync(p => p.PatientIdentityCard == dto.PatientIdentityCard))
+            {
+                return Problem("Specified Identity Card is already in use.");
             }
 
             _context.Patients.Add(entity);
@@ -176,35 +211,5 @@ namespace HospitalAdmissionApp.Server.Controllers
             return (_context.Patients?.Any(e => e.Id == id)).GetValueOrDefault();
         }
 
-        private async Task<(bool result, string message)> ValidateData(Patient_DetailsDTO dto)
-        {
-            if (string.IsNullOrWhiteSpace(dto.Name))
-            {
-                return (false, "Patient name is required.");
-            }
-
-            dto.Name.Trim();
-
-            if (string.IsNullOrWhiteSpace(dto.Surname))
-            {
-                return (false, "Patient surname is required.");
-            }
-
-            dto.Surname.Trim();
-
-            if (string.IsNullOrWhiteSpace(dto.PatientIdentityCard))
-            {
-                return (false, "Patient PatientIdentityCard is required.");
-            }
-
-            dto.PatientIdentityCard.Trim();
-
-            if (await _context.Patients.AnyAsync(p => p.PatientIdentityCard == dto.PatientIdentityCard))
-            {
-                return (false, "Specified Identity Card is already in use.");
-            }
-
-            return (true, string.Empty);
-        }
     }
 }
