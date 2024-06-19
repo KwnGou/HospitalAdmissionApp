@@ -13,5 +13,5 @@ public partial class Diseas
 
     public virtual Clinic Clinic { get; set; } = null!;
 
-    public virtual ICollection<Patient> Patients { get; set; } = new List<Patient>();
+    public virtual ICollection<Slot> Slots { get; set; } = new List<Slot>();
 }

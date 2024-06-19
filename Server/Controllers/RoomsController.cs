@@ -196,11 +196,6 @@ namespace HospitalAdmissionApp.Server.Controllers
 
         private async Task<(bool result, string message)> ValidateData(Room_GridDTO dto)
         {
-            if (dto.RoomNumber <= 0 || dto.RoomNumber > 800)
-            {
-                return (false, "Room numbers start from 1 and reach 800.");
-            }
-
 
             if (await _context.Rooms.AnyAsync(r => r.RoomNumber == dto.RoomNumber))
             {

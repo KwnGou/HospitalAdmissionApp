@@ -23,6 +23,10 @@ else
                         <RadzenTextBox @bind-Value="DTO.Surname" Name="Patient Surname" />
                         @DTO.Surname
                     </RadzenFormField>
+                    <RadzenFormField Text="Date of birth">
+                        <RadzenNumeric @bind-Value="DTO.DateOfBirth" Name="Patient date of birth" />
+                        @DTO.DateOfBirth
+                    </RadzenFormField>
                     <RadzenFormField Text="Age">
                         <RadzenNumeric @bind-Value="DTO.Age" Name="Patient Age" />
                         @DTO.Age
@@ -39,6 +43,7 @@ else
                         <Items>
                             <RadzenRadioButtonListItem Text="Male" Value="1" />
                             <RadzenRadioButtonListItem Text="Female" Value="2" />
+                            <RadzenRadioButtonListItem Text="Other" Value="3" />
                             @DTO.Sex
                         </Items>
                     </RadzenRadioButtonList>

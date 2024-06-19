@@ -25,15 +25,13 @@ namespace HospitalAdmissionApp.Shared.DTOs
         public string Surname { get; set; } = null!;
 
         [Required]
+        public DateTime DateOfBirth { get; set; }
+
+        [Required]
         public int Age { get; set; }
 
         [Required]
         public string Sex { get; set; } = null!;
-
-        [Required]
-        public int DiseaseId { get; set; }
-
-        public string DiseaseName { get; set; }
 
         [MaxLength(int.MaxValue)]
         public string? PatientDetails { get; set; }
@@ -41,22 +39,6 @@ namespace HospitalAdmissionApp.Shared.DTOs
         [Required]
         public int Insurance { get; set; }
 
-        public static Patient_EditDTO CreateFromDetailsDTO(Patient_DetailsDTO dto)
-        {
-            var result = new Patient_EditDTO() 
-            { Id = dto.Id,
-            PatientIdentityCard = dto.PatientIdentityCard,
-            Name = dto.Name,
-            Surname = dto.Surname,
-            Age = dto.Age,
-            Sex = dto.Sex,
-            Insurance = dto.Insurance,
-            PatientDetails = dto.PatientDetails,
-            DiseaseId = dto.DiseaseId,
-            DiseaseName = dto.DiseaseName
-            };
-
-            return result;
-        }
+        
     }
 }

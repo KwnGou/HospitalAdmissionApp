@@ -22,11 +22,11 @@ namespace HospitalAdmissionApp.Shared.DTOs
 
         public string PatientSurname { get; set;}
 
-        public string PatientDisease { get; set;}
+        public string DiseaseName { get; set;}
 
         [Required]
         public DateTimeOffset AdmissionDate { get; set; }
         [Required]
-        public DateTimeOffset ReleaseDate { get; set; }
+        public DateTimeOffset? ReleaseDate { get; set; }
     }
 }

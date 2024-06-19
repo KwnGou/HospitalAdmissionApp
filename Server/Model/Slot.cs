@@ -11,11 +11,15 @@ public partial class Slot
 
     public int BedId { get; set; }
 
+    public int DiseaseId { get; set; }
+
     public DateTimeOffset AdmissionDate { get; set; }
 
-    public DateTimeOffset ReleaseDate { get; set; }
+    public DateTimeOffset? ReleaseDate { get; set; }
 
     public virtual Bed Bed { get; set; } = null!;
+
+    public virtual Diseas Disease { get; set; } = null!;
 
     public virtual Patient Patient { get; set; } = null!;
 }

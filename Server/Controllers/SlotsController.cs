@@ -87,7 +87,7 @@ namespace HospitalAdmissionApp.Server.Controllers
         [HttpGet("patientId")]
         public async Task<ActionResult<Slot_GridDTO>> GetPatientSlot(int id)
         {
-            var result = await _context.Slots.Where(s => s.PatientId == id).;
+            var result = await _context.Slots.Where(s => s.PatientId == id).FirstAsync();
 
             return Ok(result);
         }

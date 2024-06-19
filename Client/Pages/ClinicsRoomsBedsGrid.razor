@@ -28,6 +28,13 @@ else
                 <Columns>
                     <RadzenDataGridColumn TItem="Bed_GridDTO" Property="@nameof(Bed_GridDTO.BedInfo)" Title="Bed information"></RadzenDataGridColumn>
                 </Columns>
+                    <Columns>
+                        <RadzenDataGridColumn TItem="Patient_GridDTO" Property="@nameof(Patient_GridDTO.Name)" Title="Patient Name">
+                            <Template Context="dto">
+                                @($"{dto.Surname} {dto.Name}")
+                            </Template>
+                        </RadzenDataGridColumn>
+                    </Columns>
             </RadzenDataGrid>
             <RadzenCard Style="margin-bottom:20px">
                 Room number:
@@ -56,6 +63,8 @@ else
     private RadzenDataGrid<Bed_GridDTO> bedsGrid;
     private Bed_GridDTO[] beds;
 
+    [Parameter]
+    public RenderFragment<object> DisplayTemplate { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
