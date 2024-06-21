@@ -32,10 +32,8 @@ namespace HospitalAdmissionApp.Server.Controllers
           {
               return NotFound();
           }
-          //?
             List<Patient> result;
             result = await _context.Patients
-                .Include(p => p.Disease)
                 .ToListAsync();
             var mapped = _mapper.Map<IEnumerable<Patient_GridDTO>>(result);
 
@@ -50,17 +48,14 @@ namespace HospitalAdmissionApp.Server.Controllers
           {
               return NotFound();
           }
-            var patient = await _context.Patients.FindAsync(id);
+            var result = await _context.Patients.FindAsync(id);
 
-            if (patient == null)
+            if (result == null)
             {
                 return NotFound();
             }
 
-            await _context.Entry(patient).Reference(p => p.Disease)
-                .LoadAsync();
-
-            var mapped = _mapper.Map<Patient_DetailsDTO>(patient);
+            var mapped = _mapper.Map<Patient_DetailsDTO>(result);
 
             return Ok(mapped);
         }
@@ -125,7 +120,7 @@ namespace HospitalAdmissionApp.Server.Controllers
         // POST: api/Patients
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Patient>> PostPatient(Patient_DetailsDTO dto)
+        public async Task<ActionResult<Patient>> PostPatient(Patient_EditDTO dto)
         {
           if (_context.Patients == null)
           {
@@ -154,7 +149,7 @@ namespace HospitalAdmissionApp.Server.Controllers
             }
 
             dto.PatientIdentityCard.Trim();
-
+            // propably have to modify this if we proceed with the memory feature
             if (await _context.Patients.AnyAsync(p => p.PatientIdentityCard == dto.PatientIdentityCard))
             {
                 return Problem("Specified Identity Card is already in use.");
@@ -170,9 +165,6 @@ namespace HospitalAdmissionApp.Server.Controllers
             {
                 return BadRequest($"{ex.Message}: {ex?.InnerException?.Message}");
             }
-
-            await _context.Entry(entity).Reference(p => p.Disease)
-                .LoadAsync();
 
             var mapped = _mapper.Map<Patient_DetailsDTO>(entity);
 

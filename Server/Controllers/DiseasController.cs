@@ -169,10 +169,6 @@ namespace HospitalAdmissionApp.Server.Controllers
             {
                 return NotFound();
             }
-            if (await _context.Patients.AllAsync(p => p.DiseaseId == id)) 
-            {
-                return BadRequest("There is a patient with the specific disease.");
-            }
 
             _context.Diseases.Remove(diseas);
 

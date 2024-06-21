@@ -11,60 +11,72 @@
 }
 else
 {
-    <div Class="rz-p-0 rz-p-md-12">
-        <RadzenTemplateForm TItem="Patient_EditDTO" Data="@DTO">
-            <RadzenColumn Size="12" SizeSM="6">
-                <RadzenStack>
-                    <RadzenFormField Text="Name">
-                        <RadzenTextBox @bind-Value="DTO.Name" Name="Patient Name" />
-                        @DTO.Name
-                    </RadzenFormField>
-                    <RadzenFormField Text="Surname">
-                        <RadzenTextBox @bind-Value="DTO.Surname" Name="Patient Surname" />
-                        @DTO.Surname
-                    </RadzenFormField>
-                    <RadzenFormField Text="Date of birth">
-                        <RadzenNumeric @bind-Value="DTO.DateOfBirth" Name="Patient date of birth" />
-                        @DTO.DateOfBirth
-                    </RadzenFormField>
-                    <RadzenFormField Text="Age">
-                        <RadzenNumeric @bind-Value="DTO.Age" Name="Patient Age" />
-                        @DTO.Age
-                    </RadzenFormField>
-                </RadzenStack>
-            </RadzenColumn>
-            <RadzenColumn Size="12" SizeSM="6">
-                <RadzenDropDown TValue="int?" Data="@diseases" @ref="diseasesGrid" @bind-SelectedItem="@selectedDisease" @bind-Value="@selectedDiseaseId"
-                                ValueProperty="@(nameof(Disease_GridDTO.Id))"
-                                Style="width: 100%; max-width: 400px;" Name="DropDownBindValue" />
-                                @DTO.DiseaseName
-                <RadzenFormField Text="Sex">
-                    <RadzenRadioButtonList @bind-Value=@DTO.Sex TValue="string" class="rz-m-4 rz-mt-8">
-                        <Items>
-                            <RadzenRadioButtonListItem Text="Male" Value="1" />
-                            <RadzenRadioButtonListItem Text="Female" Value="2" />
-                            <RadzenRadioButtonListItem Text="Other" Value="3" />
-                            @DTO.Sex
-                        </Items>
-                    </RadzenRadioButtonList>
-                </RadzenFormField>
+    <RadzenTemplateForm Data="DTO" TItem="Patient_EditDTO" Submit="@(async (args) => await Save(DTO))">
+        <RadzenStack TItem="Patient_EditDTO" Data="@DTO">
+            <div class="col-md-12">
+                <div class="row">
+                    <div class="col-md-4 offset-md-4 col-sm-12">
+                        <div>Name </div>
+                            <RadzenTextBox @bind-Value="DTO.Name" Name="Patient Name" />
+                            @DTO.Name
+                        
+                    </div>
+                    <div class="col-sm-4 col-sm-12">
+                        <RadzenFormField Text="Surname">
+                            <RadzenTextBox @bind-Value="DTO.Surname" Name="Patient Surname" />
+                            @DTO.Surname
+                        </RadzenFormField>
+                    </div>
+                </div>
+            </div>
+            <br />
+            <div class="col-md-12">
+                <div class="row">
+                    <div>
+                        <RadzenFormField Text="Date of birth" />
+                        <RadzenDatePicker TValue="DateTime" DateFormat="d MM yy" Max="@(DateTime.Today)"
+                                          @bind-Value="@DTO.DateOfBirth" />
+                    </div>
+                </div>
+                <div class="row">
+                    <div>
+                        <RadzenFormField Text="Sex" />
+                        <RadzenDropDown @bind-Value=@DTO.Sex TValue="string" Name="DropDownBindValue" />
+                    </div>
+                </div>
+            </div>
+            <br />
+            <div class="row">
                 <RadzenFormField Text="Insurance">
-                    <RadzenRadioButtonList @bind-Value=@DTO.Insurance TValue="int" class="rz-m-4 rz-mt-8">
+                    <RadzenRadioButtonList @bind-Value=@DTO.Insurance TValue="int">
                         <Items>
                             <RadzenRadioButtonListItem Text="1" Value="1" />
                             <RadzenRadioButtonListItem Text="2" Value="2" />
-                            <RadzenRadioButtonListItem Text="2" Value="2" />
+                            <RadzenRadioButtonListItem Text="3" Value="3" />
                             @DTO.Insurance
                         </Items>
                     </RadzenRadioButtonList>
                 </RadzenFormField>
-                <RadzenFormField Text="Patient Details">
-                    <RadzenTextArea @bind-Value="@DTO.PatientDetails" Name="Patient Details" />
-                    @DTO.PatientDetails
-                </RadzenFormField>
-            </RadzenColumn>
-        </RadzenTemplateForm>
-    </div>
+            </div>
+            <br />
+            <div class="col-md-12">
+                <div class="row">
+                    <RadzenFormField Text="Patient Details">
+                        <RadzenTextArea @bind-Value="@DTO.PatientDetails" Name="Patient Details" Style="width: 100%; height: 300px" />
+                        @DTO.PatientDetails
+                    </RadzenFormField>
+                </div>
+            </div>
+        </RadzenStack>
+        <div class="row position-absolute bottom-0 end-0 p-2">
+            <div class="col-12">
+                <RadzenButton ButtonType="ButtonType.Button" Icon="check" Text="Ok"
+                              Click="@(async (args) => await Proceed(DTO))" />
+                <RadzenButton ButtonStyle="ButtonStyle.Light" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Cancel"
+                              Click="@((args) => DialogSvc.Close(false))" />
+            </div>
+        </div>
+    </RadzenTemplateForm>
 }
 @code {
     private bool isLoading;
@@ -74,11 +86,6 @@ else
 
     private Patient_DetailsDTO[] patients;
 
-    private RadzenDropDown<int?> diseasesGrid;
-    private int? selectedDiseaseId;
-    private Disease_GridDTO[] diseases;
-    private object selectedDisease;
-
     [Parameter]
     public bool IsNew { get; set; }
 
@@ -86,22 +93,21 @@ else
     {
         isLoading = true;
         patients = await Http.GetFromJsonAsync<Patient_DetailsDTO[]>("api/patients");
-        diseases = await Http.GetFromJsonAsync<Disease_GridDTO[]>("api/diseas");
         isLoading = false;
         StateHasChanged();
 
     }
 
-    private async Task Save(Patient_DetailsDTO dto)
+    private async Task Save(Patient_EditDTO dto)
     {
         HttpResponseMessage res;
         if (IsNew)
         {
-            res = await Http.PostAsJsonAsync<Patient_DetailsDTO>("api/patients", dto);
+            res = await Http.PostAsJsonAsync<Patient_EditDTO>("api/patients", dto);
         }
         else
         {
-            res = await Http.PutAsJsonAsync<Patient_DetailsDTO>($"api/plates/{dto.Id}", dto);
+            res = await Http.PutAsJsonAsync<Patient_EditDTO>($"api/plates/{dto.Id}", dto);
         }
 
         if (!res.IsSuccessStatusCode)
@@ -126,8 +132,14 @@ else
         }
     }
 
+    private async Task Proceed(Patient_EditDTO dto)
+    {
+
+        DialogSvc.Close(DTO);
+    }
+
     private async Task DeletePatient(Patient_DetailsDTO patDto)
     {
-        
+
     }
 }

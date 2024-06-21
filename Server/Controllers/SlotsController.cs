@@ -29,7 +29,7 @@ namespace HospitalAdmissionApp.Server.Controllers
 
         // GET: api/Slots
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Slot_GridDTO>>> GetSlots([FromQuery] int? patientId, int? bedId)
+        public async Task<ActionResult<IEnumerable<Slot_GridDTO>>> GetSlots([FromQuery] int? patientId, int? bedId, int? diseaseId)
         {
             if (_context.Slots == null)
             {
@@ -41,8 +41,10 @@ namespace HospitalAdmissionApp.Server.Controllers
                 result = await _context.Slots
                     .Where(s => s.PatientId == patientId.Value)
                     .Where(s => s.BedId == bedId.Value)
+                    .Where(s => s.DiseaseId == diseaseId.Value)
                     .Include(s => s.Patient)
                     .Include(s => s.Bed)
+                    .Include(s => s.Disease)
                     .ToListAsync();
             }
             else
@@ -50,6 +52,7 @@ namespace HospitalAdmissionApp.Server.Controllers
                 result = await _context.Slots
                 .Include(s => s.Patient)
                 .Include(s => s.Bed)
+                .Include(s => s.Disease)
                     .ToListAsync();
             }
 
@@ -77,19 +80,12 @@ namespace HospitalAdmissionApp.Server.Controllers
                 .LoadAsync();
             await _context.Entry(slot).Reference(s => s.Bed)
                .LoadAsync();
+            await _context.Entry(slot).Reference(s => s.Disease)
+               .LoadAsync();
 
             var mapped = _mapper.Map<Slot_GridDTO>(slot);
 
             return Ok(mapped);
-        }
-
-        // GET: api/Slots/patientId
-        [HttpGet("patientId")]
-        public async Task<ActionResult<Slot_GridDTO>> GetPatientSlot(int id)
-        {
-            var result = await _context.Slots.Where(s => s.PatientId == id).FirstAsync();
-
-            return Ok(result);
         }
 
         // PUT: api/Slots/5
@@ -217,15 +213,15 @@ namespace HospitalAdmissionApp.Server.Controllers
                 return (false, "Release date cannot be before today.");
             }
 
-            if (!(await _context.Patients.AnyAsync(p => p.Id == dto.PatientId)))
-            {
-                return (false, "Specified patient id does not exist.");
-            }
+            //if (!(await _context.Patients.AnyAsync(p => p.Id == dto.PatientId)))
+            //{
+            //    return (false, "Specified patient id does not exist.");
+            //}
 
-            if (!(await _context.Beds.AnyAsync(b => b.Id == dto.BedId)))
-            {
-                return (false, "Specified bed id does not exist.");
-            }
+            //if (!(await _context.Beds.AnyAsync(b => b.Id == dto.BedId)))
+            //{
+            //    return (false, "Specified bed id does not exist.");
+            //}
 
             return (true, string.Empty);
         }

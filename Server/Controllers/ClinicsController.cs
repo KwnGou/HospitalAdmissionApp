@@ -28,11 +28,17 @@ namespace HospitalAdmissionApp.Controllers
             {
                 return NotFound();
             }
-
-            var result = await _context.Clinics.ToListAsync();
-            var mapped = _mapper.Map<IEnumerable<Clinic_GridDTO>>(result);
-
-            return Ok(mapped);
+            try
+            {
+                var result = await _context.Clinics.ToListAsync();
+                var mapped = _mapper.Map<IEnumerable<Clinic_GridDTO>>(result);
+                return Ok(mapped);
+            }
+            catch (Exception ex)
+            {
+                var msg = ex.Message;
+                return BadRequest(msg);
+            }
         }
 
         // GET: api/Clinics/5

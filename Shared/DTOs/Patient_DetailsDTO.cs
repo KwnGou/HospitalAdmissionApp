@@ -38,22 +38,5 @@ namespace HospitalAdmissionApp.Shared.DTOs
 
         [Required]
         public int Insurance { get; set; }
-
-        public static Patient_DetailsDTO CreateFromDetailsDTO(Patient_EditDTO dto)
-        {
-            var result = new Patient_DetailsDTO()
-            {
-                Id = dto.Id,
-                PatientIdentityCard = dto.PatientIdentityCard,
-                Name = dto.Name,
-                Surname = dto.Surname,
-                Age = dto.Age,
-                Sex = dto.Sex,
-                Insurance = dto.Insurance,
-                PatientDetails = dto.PatientDetails,
-            };
-
-            return result;
-        }
     }
 }

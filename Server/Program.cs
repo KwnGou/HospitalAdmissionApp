@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore;
 var builder = WebApplication.CreateBuilder(args);
 
 //Add services to the container.
-builder.Services.AddDbContext<DataContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("HospitalAdmissionDB")));
+builder.Services.AddDbContext<DataContext>(options => options.UseSqlServer(builder.Configuration.GetConnectionString("HospitalBedsDB")));
 builder.Services.AddAutoMapper(typeof(MapperProfile));
 
 builder.Services.AddControllersWithViews();
@@ -18,6 +18,7 @@ if (app.Environment.IsDevelopment())
 {
     app.UseWebAssemblyDebugging();
 }
+
 app.UseBlazorFrameworkFiles();
 app.UseStaticFiles();
 

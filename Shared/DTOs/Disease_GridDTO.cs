@@ -21,10 +21,5 @@ namespace HospitalAdmissionApp.Shared.DTOs
         [MaxLength(50)]
         public string Name { get; set; } = null!;
 
-        public override string ToString()
-        {
-            return $"{Name} ({ClinicName})" ;
-        }
-
     }
 }

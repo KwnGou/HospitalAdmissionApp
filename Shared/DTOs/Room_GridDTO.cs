@@ -20,9 +20,5 @@ namespace HospitalAdmissionApp.Shared.DTOs
 
         public string? ClinicName { get; set; }
 
-        public override string ToString()
-        {
-            return $"{RoomNumber} ({ClinicName})";
-        }
     }
 }

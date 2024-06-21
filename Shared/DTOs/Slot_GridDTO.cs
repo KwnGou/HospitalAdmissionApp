@@ -4,6 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace HospitalAdmissionApp.Shared.DTOs
 {
@@ -15,6 +16,8 @@ namespace HospitalAdmissionApp.Shared.DTOs
         public int PatientId { get; set; }
 
         public int BedId { get; set; }
+
+        public int DiseaseId { get; set; }
 
         public string BedInfo { get; set; }
 
@@ -28,5 +31,6 @@ namespace HospitalAdmissionApp.Shared.DTOs
         public DateTimeOffset AdmissionDate { get; set; }
         [Required]
         public DateTimeOffset? ReleaseDate { get; set; }
+
     }
 }
