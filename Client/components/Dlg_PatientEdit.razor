@@ -1,0 +1,146 @@
+﻿@page "/patientEdit"
+@using HospitalAdmissionApp.Shared.DTOs
+@inject HttpClient Http
+@inject DialogService DialogSvc
+@inject NotificationService NotificationSvc
+@inject NavigationManager NavMan
+
+@if (isLoading)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <RadzenTemplateForm Data="DTO" TItem="Patient_EditDTO" Submit="@(async (args) => await Save(DTO))">
+        <RadzenStack TItem="Patient_EditDTO" Data="@DTO">
+            <div class="row">
+                <div class="col-md-3 col-sm-12">
+                    Name
+                </div>
+                <div class="col-md-9 col-sm-12">
+                    <RadzenTextBox @bind-Value="DTO.Name" Name="Patient Name" />
+                </div>
+                <div class="col-md-3 col-sm-12">
+                    Surname
+                </div>
+                <div class="col-md-9 col-sm-12">
+                    <RadzenTextBox @bind-Value="DTO.Surname" Name="Patient Surname" />
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-3 col-sm-12">
+                    Date of birth
+                </div>
+                <div class="col-md-9 col-sm-12">
+                    <RadzenDatePicker TValue="DateTime" DateFormat="d MM yy" Max="@(DateTime.Today)"
+                                      @bind-Value="@DTO.DateOfBirth" />
+                </div>
+            </div>
+            <div>
+                <div class="col-md-3 col-sm-12">
+                    Sex
+                </div>
+                <div class="col-md-9 col-sm-12">
+                    <RadzenDropDown @bind-Value=@DTO.Sex Data=@sexOptions TValue="int" Name="DropDownBindValue"
+                                    ValueProperty="@nameof(EnumOption.Id)" TextProperty="@nameof(EnumOption.Text)" />
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-3 col-sm-12">
+                    Insurance
+                </div>
+                <div class="col-md-9 col-sm-12">
+                    <RadzenDropDown @bind-Value=@DTO.Insurance Data=@insuranceOptions TValue="int" Name="DropDownBindValue"
+                                    ValueProperty="@nameof(EnumOption.Id)" TextProperty="@nameof(EnumOption.Text)" />
+                </div>
+                <div>
+                    <div class="col-md-3 col-sm-12">
+                        Patient identity card
+                    </div>
+                    <div class="col-md-9 col-sm-12">
+                        <RadzenTextBox @bind-Value="DTO.PatientIdentityCard" Name="Patient identity card" />
+                    </div>
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-12 col-sm-12">
+                    Patient Details
+                </div>
+                <div class="col-md-12">
+                    <RadzenTextArea @bind-Value="@DTO.PatientDetails" Name="Patient Details" Style="width: 80%; height: 300px" />
+                </div>
+            </div>
+        </RadzenStack>
+        <br />
+        <div class="row position-absolute bottom-0 end-0 p-2">
+            <div class="col-12">
+                <RadzenButton ButtonType="ButtonType.Submit" Icon="save" Text="Save" />
+                <RadzenButton ButtonStyle="ButtonStyle.Light" Icon="cancel" style="display: inline-block; margin-left: 10px;" Text="Cancel"
+                              Click="@((args) => DialogSvc.Close(false))" />
+            </div>
+        </div>
+    </RadzenTemplateForm>
+}
+@code {
+    private bool isLoading;
+
+    [Parameter]
+    public Patient_EditDTO DTO { get; set; }
+
+    [Parameter]
+    public bool IsNew { get; set; }
+
+
+    private EnumOption[] sexOptions;
+    private EnumOption[] insuranceOptions;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        isLoading = true;
+        sexOptions = await Http.GetFromJsonAsync<EnumOption[]>("api/sexOptions");
+        insuranceOptions = await Http.GetFromJsonAsync<EnumOption[]>("api/insuranceOptions");
+        isLoading = false;
+        StateHasChanged();
+
+    }
+
+    private async Task Save(Patient_EditDTO dto)
+    {
+        HttpResponseMessage res;
+        if (IsNew)
+        {
+            res = await Http.PostAsJsonAsync<Patient_EditDTO>("api/patients", dto);
+        }
+        else
+        {
+            res = await Http.PutAsJsonAsync<Patient_EditDTO>($"api/plates/{dto.Id}", dto);
+        }
+
+        if (!res.IsSuccessStatusCode)
+        {
+            var errMsg = await res.Content.ReadAsStringAsync();
+            NotificationSvc.Notify(
+                NotificationSeverity.Error,
+                "Saving failed",
+                errMsg,
+                8000);
+            Console.WriteLine($"Save error: {errMsg}");
+        }
+        else
+        {
+            DialogSvc.Close(true);
+            if (IsNew)
+            {
+                var newPatient = await res.Content.ReadFromJsonAsync<Patient_DetailsDTO>();
+                NavMan.NavigateTo($"patientDetails/{newPatient.Id}/{false}");
+            }
+
+        }
+    }
+
+    private async Task DeletePatient(Patient_DetailsDTO patDto)
+    {
+
+    }
+}

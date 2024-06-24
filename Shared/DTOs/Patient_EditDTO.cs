@@ -31,7 +31,7 @@ namespace HospitalAdmissionApp.Shared.DTOs
         public int Age { get; set; }
 
         [Required]
-        public string Sex { get; set; } = null!;
+        public int Sex { get; set; }
 
         [MaxLength(int.MaxValue)]
         public string? PatientDetails { get; set; }

@@ -16,7 +16,7 @@ Install-Package Bricelam.EntityFrameworkCore.Pluralizer
        -ContextDir Model --> put context in folder 'Model'
        -Force --> Update existing files
    - Single line:
-       Scaffold-DbContext "Server=.;Database=HospitalBedsDB;Trusted_Connection=True;" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Model -Tables  "Beds", "Clinics", "Diseases", "Patients", "Rooms", "Slots" -Context DataContext -ContextDir Model -Force
+       Scaffold-DbContext "Server=.;Database=HospitalBedsDB;Trusted_Connection=True;TrustServerCertificate=true;" Microsoft.EntityFrameworkCore.SqlServer -OutputDir Model -Tables  "Beds", "Clinics", "Diseases", "Patients", "Rooms", "Slots" -Context DataContext -ContextDir Model -Force
 
 3. Cleanup of DBcontext class:
   - Remove the parameterless constructor

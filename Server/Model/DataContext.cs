@@ -64,7 +64,6 @@ public partial class DataContext : DbContext
             entity.Property(e => e.DateOfBirth).HasColumnType("date");
             entity.Property(e => e.Name).HasMaxLength(50);
             entity.Property(e => e.PatientIdentityCard).HasMaxLength(50);
-            entity.Property(e => e.Sex).HasMaxLength(1);
             entity.Property(e => e.Surname).HasMaxLength(50);
         });
 

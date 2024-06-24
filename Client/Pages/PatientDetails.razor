@@ -19,7 +19,7 @@ else
 {
     <div class="row">
         <div class="col-md-3 col-sm-12">
-            Patient Name:
+            Name:
         </div>
         <div class="col-md-9 col-sm-12">
             @DTO.Name
@@ -27,7 +27,7 @@ else
     </div>
     <div class="row">
         <div class="col-md-3 col-sm-12">
-            Patient Surname:
+            Surname:
         </div>
         <div class="col-md-9 col-sm-12">
             @DTO.Surname
@@ -35,7 +35,7 @@ else
     </div>
     <div class="row">
         <div class="col-md-3 col-sm-12">
-            Patient identity card:
+            Identity card:
         </div>
         <div class="col-md-9 col-sm-12">
             @DTO.PatientIdentityCard
@@ -43,7 +43,15 @@ else
     </div>
     <div class="row">
         <div class="col-md-3 col-sm-12">
-            Patient Age:
+            Date of birth:
+        </div>
+        <div class="col-md-9 col-sm-12">
+            @DTO.DateOfBirth
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-md-3 col-sm-12">
+            Age:
         </div>
         <div class="col-md-9 col-sm-12">
             @DTO.Age
@@ -51,7 +59,7 @@ else
     </div>
     <div class="row">
         <div class="col-md-3 col-sm-12">
-            Patient Sex:
+            Sex:
         </div>
         <div class="col-md-9 col-sm-12">
             @DTO.Sex
@@ -59,12 +67,7 @@ else
     </div>
     <div class="row">
         <div class="col-md-3 col-sm-12">
-            Patient Disease:
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-3 col-sm-12">
-            Patient insurance:
+            Insurance class:
         </div>
         <div class="col-md-9 col-sm-12">
             @DTO.Insurance
@@ -78,14 +81,7 @@ else
             @DTO.PatientDetails
         </div>
     </div>
-    <div class="row">
-        <div class="col-md-3 col-sm-12">
-            Patient admission date:
-        </div>
-        <div class="col-md-9 col-sm-12">
-            @DTOSlot.AdmissionDate
-        </div>
-    </div>
+    // add edit button go to dlg or make this editable?
 }
 @code
 {
@@ -95,14 +91,11 @@ else
     [Parameter]
     public bool? OpenEdit { get; set; }
 
-    private RadzenDataGrid<Patient_DetailsDTO> grid;
     private Patient_DetailsDTO DTO;
 
-    private Slot_GridDTO DTOSlot;
 
     protected override async Task OnInitializedAsync()
     {
         DTO = await Http.GetFromJsonAsync<Patient_DetailsDTO>($"api/patients/{Id}");
-        DTOSlot = await Http.GetFromJsonAsync<Slot_GridDTO>($"api/slots/{Id}");
     }
 }

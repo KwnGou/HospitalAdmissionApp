@@ -17,7 +17,7 @@ public partial class Patient
 
     public int Age { get; set; }
 
-    public string Sex { get; set; } = null!;
+    public int Sex { get; set; }
 
     public string? PatientDetails { get; set; }
 
