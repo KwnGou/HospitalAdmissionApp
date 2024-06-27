@@ -1,4 +1,4 @@
-﻿@page "/PatientDetails/{Id:int}/{OpenEdit:bool?}"
+﻿@page "/PatientDetails/{Id:int}"
 @using HospitalAdmissionApp.Shared.DTOs
 
 @inject HttpClient Http
@@ -62,7 +62,7 @@ else
             Sex:
         </div>
         <div class="col-md-9 col-sm-12">
-            @DTO.Sex
+            @DTO.SexText
         </div>
     </div>
     <div class="row">
@@ -70,7 +70,7 @@ else
             Insurance class:
         </div>
         <div class="col-md-9 col-sm-12">
-            @DTO.Insurance
+            @DTO.InsuranceText
         </div>
     </div>
     <div class="row">
@@ -81,7 +81,7 @@ else
             @DTO.PatientDetails
         </div>
     </div>
-    // add edit button go to dlg or make this editable?
+    
 }
 @code
 {

@@ -1,5 +1,6 @@
 ﻿@page "/patientEdit"
 @using HospitalAdmissionApp.Shared.DTOs
+@using HospitalAdmissionApp.Shared
 @inject HttpClient Http
 @inject DialogService DialogSvc
 @inject NotificationService NotificationSvc
@@ -94,12 +95,15 @@ else
     private EnumOption[] sexOptions;
     private EnumOption[] insuranceOptions;
 
+    private AppConfigOptions appConfigOptions;
+
 
     protected override async Task OnInitializedAsync()
     {
         isLoading = true;
-        sexOptions = await Http.GetFromJsonAsync<EnumOption[]>("api/sexOptions");
-        insuranceOptions = await Http.GetFromJsonAsync<EnumOption[]>("api/insuranceOptions");
+        appConfigOptions = await Http.GetFromJsonAsync<AppConfigOptions>("api/Tools/AppConfigOptions");
+        sexOptions = await Http.GetFromJsonAsync<EnumOption[]>("api/EnumOptions/sexOptions");
+        insuranceOptions = await Http.GetFromJsonAsync<EnumOption[]>("api/EnumOptions/insuranceOptions");
         isLoading = false;
         StateHasChanged();
 

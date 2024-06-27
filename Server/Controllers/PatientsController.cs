@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using HospitalAdmissionApp.Server.Model;
 using AutoMapper;
 using HospitalAdmissionApp.Shared.DTOs;
+using HospitalAdmissionApp.Shared;
 
 namespace HospitalAdmissionApp.Server.Controllers
 {
@@ -17,11 +18,13 @@ namespace HospitalAdmissionApp.Server.Controllers
     {
         private readonly DataContext _context;
         private readonly IMapper _mapper;
+        private readonly IConfiguration _config  ;
 
-        public PatientsController(DataContext context, IMapper mapper)
+        public PatientsController(DataContext context, IMapper mapper, IConfiguration config)
         {
             _context = context;
             _mapper = mapper;  
+            _config = config;
         }
 
         // GET: api/Patients
@@ -56,6 +59,14 @@ namespace HospitalAdmissionApp.Server.Controllers
             }
 
             var mapped = _mapper.Map<Patient_DetailsDTO>(result);
+
+            // fix other visual data
+            var sexOptions = _config.GetSection(EnumOption.SexOptionsString).Get<EnumOption[]>();
+            var insuranceOptions = _config.GetSection(EnumOption.InsuranceOptionsString).Get<EnumOption[]>();
+
+            mapped.SexText = sexOptions.First(s => s.Id == mapped.Sex).Text;
+            mapped.InsuranceText = insuranceOptions.First(i => i.Id == mapped.Insurance).Text;
+            mapped.Age = DateTime.Now.Year - mapped.DateOfBirth.Year;
 
             return Ok(mapped);
         }
@@ -183,6 +194,11 @@ namespace HospitalAdmissionApp.Server.Controllers
             if (patient == null)
             {
                 return NotFound();
+            }
+
+            if (_context.Slots.Any(s => s.PatientId == id))
+            {
+                return BadRequest("Patient in use");
             }
 
             _context.Patients.Remove(patient);

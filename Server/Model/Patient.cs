@@ -15,8 +15,6 @@ public partial class Patient
 
     public DateTime DateOfBirth { get; set; }
 
-    public int Age { get; set; }
-
     public int Sex { get; set; }
 
     public string? PatientDetails { get; set; }

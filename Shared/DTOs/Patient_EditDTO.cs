@@ -28,9 +28,6 @@ namespace HospitalAdmissionApp.Shared.DTOs
         public DateTime DateOfBirth { get; set; }
 
         [Required]
-        public int Age { get; set; }
-
-        [Required]
         public int Sex { get; set; }
 
         [MaxLength(int.MaxValue)]
@@ -38,6 +35,8 @@ namespace HospitalAdmissionApp.Shared.DTOs
 
         [Required]
         public int Insurance { get; set; }
+
+        public int Age { get; set; }    
         
         public static Patient_EditDTO CreateFromDetails(Patient_DetailsDTO dto)
         {
@@ -47,7 +46,6 @@ namespace HospitalAdmissionApp.Shared.DTOs
                 Name = dto.Name,
                 Surname = dto.Surname,            
                 DateOfBirth = dto.DateOfBirth,
-                Age = dto.Age,
                 Sex = dto.Sex,
                 PatientDetails = dto.PatientDetails,
                 Insurance = dto.Insurance,
