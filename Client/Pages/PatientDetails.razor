@@ -1,4 +1,5 @@
 ﻿@page "/PatientDetails/{Id:int}"
+@using HospitalAdmissionApp.Client.components
 @using HospitalAdmissionApp.Shared.DTOs
 
 @inject HttpClient Http
@@ -18,7 +19,7 @@
 else
 {
     <div class="row">
-        <div class="col-md-3 col-sm-12">
+        <div class="col-md-2 offset-md-1 col-sm-12">
             Name:
         </div>
         <div class="col-md-9 col-sm-12">
@@ -26,7 +27,7 @@ else
         </div>
     </div>
     <div class="row">
-        <div class="col-md-3 col-sm-12">
+        <div class="col-md-2 offset-md-1 col-sm-12">
             Surname:
         </div>
         <div class="col-md-9 col-sm-12">
@@ -34,7 +35,7 @@ else
         </div>
     </div>
     <div class="row">
-        <div class="col-md-3 col-sm-12">
+        <div class="col-md-2 offset-md-1 col-sm-12">
             Identity card:
         </div>
         <div class="col-md-9 col-sm-12">
@@ -42,7 +43,7 @@ else
         </div>
     </div>
     <div class="row">
-        <div class="col-md-3 col-sm-12">
+        <div class="col-md-2 offset-md-1 col-sm-12">
             Date of birth:
         </div>
         <div class="col-md-9 col-sm-12">
@@ -50,7 +51,7 @@ else
         </div>
     </div>
     <div class="row">
-        <div class="col-md-3 col-sm-12">
+        <div class="col-md-2 offset-md-1 col-sm-12">
             Age:
         </div>
         <div class="col-md-9 col-sm-12">
@@ -58,7 +59,7 @@ else
         </div>
     </div>
     <div class="row">
-        <div class="col-md-3 col-sm-12">
+        <div class="col-md-2 offset-md-1 col-sm-12">
             Sex:
         </div>
         <div class="col-md-9 col-sm-12">
@@ -66,7 +67,7 @@ else
         </div>
     </div>
     <div class="row">
-        <div class="col-md-3 col-sm-12">
+        <div class="col-md-2 offset-md-1 col-sm-12">
             Insurance class:
         </div>
         <div class="col-md-9 col-sm-12">
@@ -74,22 +75,20 @@ else
         </div>
     </div>
     <div class="row">
-        <div class="col-md-3 col-sm-12">
+        <div class="col-md-12 col-sm-12">
             Patient details:
         </div>
-        <div class="col-md-9 col-sm-12">
+        <div class="col-md-12 col-sm-12">
             @DTO.PatientDetails
         </div>
     </div>
-    
+    <br/>
+    <RadzenButton Icon="add_circle_outline" Text="Edit Patient" ButtonStyle="ButtonStyle.Primary" Click="@(async (args) => await Edit())"/>
 }
 @code
 {
     [Parameter]
     public int Id { get; set; }
-
-    [Parameter]
-    public bool? OpenEdit { get; set; }
 
     private Patient_DetailsDTO DTO;
 
@@ -97,5 +96,22 @@ else
     protected override async Task OnInitializedAsync()
     {
         DTO = await Http.GetFromJsonAsync<Patient_DetailsDTO>($"api/patients/{Id}");
+    }
+
+    private async Task Edit()
+    {
+        var dto = new Patient_EditDTO();
+
+        var dlgParams = new Dictionary<string, object>()
+        {
+            {"DTO", dto},
+            {"IsNew", false },
+        };
+
+        var res = await DlgService.OpenAsync<Dlg_PatientEdit>(
+            "Add patient",
+            dlgParams,
+            new DialogOptions() { Width = "1000px", Height = "800px" }
+        );
     }
 }

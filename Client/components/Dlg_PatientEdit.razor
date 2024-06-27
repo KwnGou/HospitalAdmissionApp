@@ -118,7 +118,7 @@ else
         }
         else
         {
-            res = await Http.PutAsJsonAsync<Patient_EditDTO>($"api/plates/{dto.Id}", dto);
+            res = await Http.PutAsJsonAsync<Patient_EditDTO>($"api/patients/{dto.Id}", dto);
         }
 
         if (!res.IsSuccessStatusCode)
