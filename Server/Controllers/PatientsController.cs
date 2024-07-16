@@ -9,6 +9,9 @@ using HospitalAdmissionApp.Server.Model;
 using AutoMapper;
 using HospitalAdmissionApp.Shared.DTOs;
 using HospitalAdmissionApp.Shared;
+using Microsoft.Build.Framework;
+using HospitalAdmissionApp.Client.Pages;
+using static System.Reflection.Metadata.BlobBuilder;
 
 namespace HospitalAdmissionApp.Server.Controllers
 {
@@ -18,12 +21,12 @@ namespace HospitalAdmissionApp.Server.Controllers
     {
         private readonly DataContext _context;
         private readonly IMapper _mapper;
-        private readonly IConfiguration _config  ;
+        private readonly IConfiguration _config;
 
         public PatientsController(DataContext context, IMapper mapper, IConfiguration config)
         {
             _context = context;
-            _mapper = mapper;  
+            _mapper = mapper;
             _config = config;
         }
 
@@ -31,26 +34,59 @@ namespace HospitalAdmissionApp.Server.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Patient_GridDTO>>> GetPatients()
         {
-          if (_context.Patients == null)
-          {
-              return NotFound();
-          }
+            if (_context.Patients == null)
+            {
+                return NotFound();
+            }
             List<Patient> result;
             result = await _context.Patients
                 .ToListAsync();
             var mapped = _mapper.Map<IEnumerable<Patient_GridDTO>>(result);
 
-            return Ok(mapped);  
+            return Ok(mapped);
+        }
+        // GET: api/patientsForAdmission
+        [HttpGet("patientsForAdmission", Name = nameof(GetPatientsForAdmission))]
+        public async Task<ActionResult<IEnumerable<PatientSelection_DTO>>> GetPatientsForAdmission()
+        {
+            if (_context.Patients == null)
+            {
+                return NotFound();
+            }
+
+
+            var cmdTxt = @"
+SELECT P1.Id AS Id, P1.[Name] AS [Name], P1.Surname AS Surname, P1.PatientIdentityCard AS PatientIdentityCard
+FROM Patients P1
+WHERE P1.Id NOT IN (SELECT Slots.PatientId FROM Slots)
+	UNION
+SELECT P2.Id AS Id, P2.[Name] AS [Name], P2.Surname AS Surname, P2.PatientIdentityCard AS PatientIdentityCard
+FROM Patients P2
+JOIN Slots
+ON P2.Id = Slots.PatientId
+WHERE NOT Slots.ReleaseDate IS NULL
+";
+
+            try
+            {
+                var result = await _context.SelectablePatients.FromSqlRaw(cmdTxt).ToArrayAsync();
+                return Ok(result);
+
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"{ex.Message}: {ex?.InnerException?.Message}");
+            }
         }
 
         // GET: api/Patients/5
         [HttpGet("{id}")]
         public async Task<ActionResult<Patient_DetailsDTO>> GetPatient(int id)
         {
-          if (_context.Patients == null)
-          {
-              return NotFound();
-          }
+            if (_context.Patients == null)
+            {
+                return NotFound();
+            }
             var result = await _context.Patients.FindAsync(id);
 
             if (result == null)
@@ -133,10 +169,10 @@ namespace HospitalAdmissionApp.Server.Controllers
         [HttpPost]
         public async Task<ActionResult<Patient>> PostPatient(Patient_EditDTO dto)
         {
-          if (_context.Patients == null)
-          {
-              return Problem("Entity set 'DataContext.Patients'  is null.");
-          }
+            if (_context.Patients == null)
+            {
+                return Problem("Entity set 'DataContext.Patients'  is null.");
+            }
             var entity = _mapper.Map<Patient>(dto);
 
             //Data Validation

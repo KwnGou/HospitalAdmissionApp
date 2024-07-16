@@ -17,8 +17,7 @@ else
     <div class="rz-p-sm-12 rz-text-align-left">
         <RadzenLabel Text="Select Clinic" Component="DropDownBindValue" Style="margin-right: 8px; vertical-align: middle;" />
         <RadzenDropDown TValue="int?" Data="@clinics" @ref="clinicsGrid" @bind-SelectedItem="@selectedClinic" @bind-Value="@selectedClinicId"
-                        ValueProperty="@(nameof(Clinic_GridDTO.Id))" TextProperty="@nameof(clinicsGrid.Name)"
-                        Style="width: 100%; max-width: 400px;" Name="DropDownBindValue" />
+                        ValueProperty="@(nameof(Clinic_GridDTO.Id))" TextProperty="@nameof(clinicsGrid.Name)" />
     </div>
     <div class="rz-p-sm-12 rz-text-align-left">
     <RadzenDataGrid @ref="roomsGrid" AllowFiltering="true" AllowPaging="true" PageSize="5" AllowSorting="true" RowRender="@RowRender" ExpandMode="@expandMode"

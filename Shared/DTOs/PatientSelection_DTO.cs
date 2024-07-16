@@ -7,17 +7,13 @@ using System.Threading.Tasks;
 
 namespace HospitalAdmissionApp.Shared.DTOs
 {
-    public class Patient_GridDTO
+    public class PatientSelection_DTO
     {
         [Key]
         public int Id { get; set; }
 
-        [Required]
-        [MaxLength(50)]
         public string Name { get; set; } = null!;
 
-        [Required]
-        [MaxLength(50)]
         public string Surname { get; set; } = null!;
 
         public string PatientIdentityCard { get; set; } = null!;

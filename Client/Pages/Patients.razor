@@ -20,8 +20,9 @@ else
                     FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterMode="FilterMode.Simple" PagerHorizontalAlign="HorizontalAlign.Center"
                     Data="@patients" TItem="Patient_GridDTO">
         <Columns>
-            <RadzenDataGridColumn TItem="Patient_GridDTO" Title="Patient name" TextAlign="TextAlign.Left" Filterable="@true" Property="@(nameof(Patient_GridDTO.Name))" />
+            <RadzenDataGridColumn TItem="Patient_GridDTO" Title="Patient Name" TextAlign="TextAlign.Left" Filterable="@true" Property="@(nameof(Patient_GridDTO.Name))" />
             <RadzenDataGridColumn TItem="Patient_GridDTO" Title="Patient Surname" TextAlign="TextAlign.Left" Filterable="@true" Property="@(nameof(Patient_GridDTO.Surname))" />
+            <RadzenDataGridColumn TItem="Patient_GridDTO" Title="Patient Identity Card" TextAlign="TextAlign.Left" Filterable="@true" Property="@(nameof(Patient_GridDTO.PatientIdentityCard))" />
             <RadzenDataGridColumn TItem="Patient_GridDTO" Filterable="@false" Sortable="@false" TextAlign="TextAlign.Center">
                 <Template Context="dto">
                     <RadzenButton Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Click="@(async (args) => await Details(dto.Id))" />
@@ -46,7 +47,7 @@ else
 
     protected override async Task OnInitializedAsync()
     {
-        patients = await Http.GetFromJsonAsync<Patient_GridDTO[]>("api/patients");
+        patients = await Http.GetFromJsonAsync<Patient_GridDTO[]>("api/Patients");
     }
 
 

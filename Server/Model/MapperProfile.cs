@@ -26,7 +26,10 @@ namespace HospitalAdmissionApp.Server.Model
                 .ForMember(dest => dest.BedInfo, opt => opt.MapFrom(src => src.Bed.BedInfo))
                 .ForMember(dest => dest.PatientName, opt => opt.MapFrom(src => src.Patient.Name))
                 .ForMember(dest => dest.PatientSurname, opt => opt.MapFrom(src => src.Patient.Surname))
-                .ForMember(dest => dest.DiseaseName, opt => opt.MapFrom(src => src.Disease.Id))
+                .ForMember(dest => dest.DiseaseName, opt => opt.MapFrom(src => src.Disease.Name))
+                .ReverseMap();
+
+            CreateMap<Slot, SlotSelection_DTO>()
                 .ReverseMap();
 
             CreateMap<Patient, Patient_DetailsDTO>()

@@ -1,3 +1,156 @@
 ﻿@page "/"
+@using HospitalAdmissionApp.Client.components
+@using HospitalAdmissionApp.Shared.DTOs
+@inject HttpClient Http
+@inject NotificationService NotificationSvc
+@inject DialogService DlgService
+@inject NavigationManager NavMan
 
-<h1>Hello, world!</h1>
+<PageTitle>Admission Page</PageTitle>
+
+<h1>Admission Page</h1>
+
+@if (isLoading)
+{
+    <em>Loading ...</em>
+}
+else
+{
+    <div>
+        <div class="col-md-3 col-sm-12">
+            Patients for admission
+        </div>
+        <div class="col-md-9 col-sm-12">
+            <RadzenDropDownDataGrid TValue="int?" @bind-Value="@selectedPatientId" Data=@patientsForAdmissionGrid ValueProperty="@nameof(PatientSelection_DTO.Id)"
+                                    AllowColumnResize="true" AllowFilteringByAllStringColumns="true" AllowClear="@true">
+                <ValueTemplate Context="pDTO">
+                    @($"{pDTO.Surname} {pDTO.Name}")
+                </ValueTemplate>
+                <Columns>
+                    <RadzenDropDownDataGridColumn Property="@nameof(PatientSelection_DTO.Name)" Title="Name" Width="100px" />
+                    <RadzenDropDownDataGridColumn Property="@nameof(PatientSelection_DTO.Surname)" Title="Surname" Width="100px" />
+                    <RadzenDropDownDataGridColumn Property="@nameof(PatientSelection_DTO.PatientIdentityCard)" Title="Identity Card" Width="100px" />
+                </Columns>
+            </RadzenDropDownDataGrid>
+        </div>
+    </div>
+    <br />
+    <div>
+        <div class="col-md-3 col-sm-12">
+            Select disease
+        </div>
+        <div class="col-md-9 col-sm-12">
+            <RadzenDropDown TValue="int?" Data="@diseases" @ref="diseasesGrid" @bind-SelectedItem="@selectedDisease" @bind-Value="@selectedDiseaseId"
+                            ValueProperty="@(nameof(Disease_GridDTO.Id))" TextProperty="@nameof(Disease_GridDTO.Name)" />
+        </div>
+    </div>
+    <br />
+    <RadzenButton Icon="add_circle_outline" Text="Show available beds" ButtonStyle="ButtonStyle.Success" Click="@(async(args) => ActivateBedsGrid())" />
+    <div>
+        <div class="col-md-3 col-sm-12">
+            Available beds
+        </div>
+        <div class="col-md-9 col-sm-12">
+            <RadzenDropDownDataGrid TValue="int?" @bind-Value=@selectedBedId Data=@bedsGrid ValueProperty="@nameof(Bed_GridDTO.Id)"
+                                    AllowColumnResize="true" AllowFilteringByAllStringColumns="true" Disabled="patientAndDisease">
+                <ValueTemplate Context="bDTO">
+                    @($"{bDTO.RoomNumber} {bDTO.BedInfo}")
+                </ValueTemplate>
+                <Columns>
+                    <RadzenDropDownDataGridColumn Property="@nameof(Bed_GridDTO.RoomNumber)" Title="Room" Width="100px" />
+                    <RadzenDropDownDataGridColumn Property="@nameof(Bed_GridDTO.BedInfo)" Title="Bed" Width="200px" />
+                </Columns>
+            </RadzenDropDownDataGrid>
+
+        </div>
+    </div>
+    <br />
+    <RadzenButton Icon="add_circle_outline" Text="Admit patient" ButtonStyle="ButtonStyle.Success" Click="@(async(args) => Admit())" />
+    <RadzenButton Icon="add_circle_outline" Text="Add New Patient" ButtonStyle="ButtonStyle.Success" Click="@(async(args) => Add())" />
+}
+@code
+{
+    private bool isLoading;
+    private bool patientAndDisease = true;
+
+    public PatientSelection_DTO[] patientsForAdmissionGrid;
+    public PatientSelection_DTO selectedPatient;
+    public int? selectedPatientId;
+
+
+    private RadzenDropDown<int?> diseasesGrid;
+    private Disease_GridDTO[] diseases;
+    private object selectedDisease;
+    private int? selectedDiseaseId;
+
+    public Bed_GridDTO[] bedsGrid;
+    public Bed_GridDTO selectedBed;
+    public int? selectedBedId;
+
+    protected override async Task OnInitializedAsync()
+    {
+        isLoading = true;
+
+        patientsForAdmissionGrid = await Http.GetFromJsonAsync<PatientSelection_DTO[]>("api/Patients/patientsForAdmission");
+        diseases = await Http.GetFromJsonAsync<Disease_GridDTO[]>("api/Diseas");
+
+        isLoading = false;
+        StateHasChanged();
+    }
+
+    private async Task ActivateBedsGrid()
+    {
+        if (selectedDiseaseId.HasValue && selectedPatientId.HasValue)
+        {
+            patientAndDisease = false;
+            bedsGrid = await Http.GetFromJsonAsync<Bed_GridDTO[]>("api/Beds");
+            StateHasChanged();
+        }
+    }
+
+    private async Task Add()
+    {
+        var dto = new Patient_EditDTO();
+
+        var dlgParams = new Dictionary<string, object>()
+        {
+            {"DTO", dto},
+            {"IsNew", true },
+        };
+
+        var res = await DlgService.OpenAsync<Dlg_PatientEdit>(
+            "Add patient",
+            dlgParams,
+            new DialogOptions() { Width = "1000px", Height = "800px" }
+        );
+    }
+
+    private async Task Admit()
+    {
+
+        HttpResponseMessage res;
+        var dto = new SlotSelection_DTO();
+        dto.PatientId = selectedPatientId.Value;
+        dto.BedId = selectedBedId.Value;
+        dto.DiseaseId = selectedDiseaseId.Value;
+
+        res = await Http.PostAsJsonAsync<SlotSelection_DTO>("api/Slots", dto);
+
+        if (!res.IsSuccessStatusCode)
+        {
+            var errMsg = await res.Content.ReadAsStringAsync();
+            NotificationSvc.Notify(
+                NotificationSeverity.Error,
+                "Saving failed",
+                errMsg,
+                8000);
+            Console.WriteLine($"Save error: {errMsg}");
+        }
+        else
+        {
+            StateHasChanged();
+            DlgService.Close(true);
+        }
+
+    }
+}
