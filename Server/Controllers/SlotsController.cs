@@ -29,31 +29,28 @@ namespace HospitalAdmissionApp.Server.Controllers
 
         // GET: api/Slots
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Slot_GridDTO>>> GetSlots([FromQuery] int? patientId, int? bedId, int? diseaseId)
+        public async Task<ActionResult<IEnumerable<Slot_GridDTO>>> GetSlots([FromQuery] int? patientId)
         {
             if (_context.Slots == null)
             {
                 return NotFound();
             }
             List<Slot> result;
+
             if (patientId.HasValue)
             {
                 result = await _context.Slots
                     .Where(s => s.PatientId == patientId.Value)
-                    .Where(s => s.BedId == bedId.Value)
-                    .Where(s => s.DiseaseId == diseaseId.Value)
                     .Include(s => s.Patient)
-                    .Include(s => s.Bed)
                     .Include(s => s.Disease)
+                    .Include(s => s.Bed)
+                    .ThenInclude(b => b.Room)                  
                     .ToListAsync();
             }
             else
             {
-                result = await _context.Slots
-                .Include(s => s.Patient)
-                .Include(s => s.Bed)
-                .Include(s => s.Disease)
-                    .ToListAsync();
+
+                return BadRequest("Patient id must be defined.");
             }
 
             var mapped = _mapper.Map<IEnumerable<Slot_GridDTO>>(result);
@@ -107,116 +104,116 @@ namespace HospitalAdmissionApp.Server.Controllers
 
         //    _context.Entry(dto).State = EntityState.Modified;
 
-        //    try
-        //    {
-        //        await _context.SaveChangesAsync();
+        //            try
+        //            {
+        //                await _context.SaveChangesAsync();
         //    }
         //    the application is not going to support multiple users the following exception is not needed at the moment 
-        //    catch (DbUpdateConcurrencyException)
-        //    {
-        //        if (!DiseasExists(id))
-        //        {
-        //            return NotFound();
-        //        }
-        //        else
-        //        {
-        //            throw;
-        //        }
-        //    }
-        //    catch (DbUpdateException ex)
-        //    {
-        //        return BadRequest($"{ex.Message}: {ex?.InnerException?.Message}");
-        //    }
+        //            catch (DbUpdateConcurrencyException)
+        //            {
+        //                if (!DiseasExists(id))
+        //                {
+        //                    return NotFound();
+        //}
+        //                else
+        //{
+        //    throw;
+        //}
+        //            }
+        //            catch (DbUpdateException ex)
+        //            {
+        //                return BadRequest($"{ex.Message}: {ex?.InnerException?.Message}");
+        //            }
         //    return NoContent();
         //}
 
         // POST: api/Slots
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPost]
-        public async Task<ActionResult<Slot>> PostSlot(SlotSelection_DTO dto)
-        {
-            if (_context.Slots == null)
-            {
-                return Problem("Entity set 'DataContext.Slots'  is null.");
-            }
-            var entity = _mapper.Map<Slot>(dto);
+public async Task<ActionResult<Slot>> PostSlot(SlotSelection_DTO dto)
+{
+    if (_context.Slots == null)
+    {
+        return Problem("Entity set 'DataContext.Slots'  is null.");
+    }
+    var entity = _mapper.Map<Slot>(dto);
 
-            //Data Validation
-            var (res, msg) = await ValidateData(dto);
-            if (!res)
-            {
-                return BadRequest(msg);
-            }
-            entity.AdmissionDate = DateTimeOffset.Now;
+    //Data Validation
+    var (res, msg) = await ValidateData(dto);
+    if (!res)
+    {
+        return BadRequest(msg);
+    }
+    entity.AdmissionDate = DateTimeOffset.Now;
 
-            _context.Slots.Add(entity);
+    _context.Slots.Add(entity);
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateException ex)
-            {
-                return BadRequest($"{ex.Message}: {ex?.InnerException?.Message}");
-            }
+    try
+    {
+        await _context.SaveChangesAsync();
+    }
+    catch (DbUpdateException ex)
+    {
+        return BadRequest($"{ex.Message}: {ex?.InnerException?.Message}");
+    }
 
-            await _context.Entry(entity).Reference(s => s.Patient)
-                .LoadAsync();
-            await _context.Entry(entity).Reference(s => s.Bed)
-               .LoadAsync();
+    await _context.Entry(entity).Reference(s => s.Patient)
+        .LoadAsync();
+    await _context.Entry(entity).Reference(s => s.Bed)
+       .LoadAsync();
 
-            var mapped = _mapper.Map<Slot_GridDTO>(entity);
+    var mapped = _mapper.Map<Slot_GridDTO>(entity);
 
-            return CreatedAtAction("GetSlot", new { id = mapped.Id }, mapped);
-        }
+    return CreatedAtAction("GetSlot", new { id = mapped.Id }, mapped);
+}
 
-        // DELETE: api/Slots/5
-        //[HttpDelete("{id}")]
-        //public async Task<IActionResult> DeleteSlot(int id)
-        //{
-        //    if (_context.Slots == null)
-        //    {
-        //        return NotFound();
-        //    }
-        //    var slot = await _context.Slots.FindAsync(id);
-        //    if (slot == null)
-        //    {
-        //        return NotFound();
-        //    }
+// DELETE: api/Slots/5
+//[HttpDelete("{id}")]
+//public async Task<IActionResult> DeleteSlot(int id)
+//{
+//    if (_context.Slots == null)
+//    {
+//        return NotFound();
+//    }
+//    var slot = await _context.Slots.FindAsync(id);
+//    if (slot == null)
+//    {
+//        return NotFound();
+//    }
 
-        //    _context.Slots.Remove(slot);
+//    _context.Slots.Remove(slot);
 
-        //    try
-        //    {
-        //        await _context.SaveChangesAsync();
-        //    }
-        //    catch (DbUpdateException ex)
-        //    {
-        //        return BadRequest($"{ex.Message}: {ex?.InnerException?.Message}");
-        //    }
+//    try
+//    {
+//        await _context.SaveChangesAsync();
+//    }
+//    catch (DbUpdateException ex)
+//    {
+//        return BadRequest($"{ex.Message}: {ex?.InnerException?.Message}");
+//    }
 
-        //    return NoContent();
-        //}
+//    return NoContent();
+//}
 
-        private bool SlotExists(int id)
-        {
-            return (_context.Slots?.Any(e => e.Id == id)).GetValueOrDefault();
-        }
+private bool SlotExists(int id)
+{
+    return (_context.Slots?.Any(e => e.Id == id)).GetValueOrDefault();
+}
 
-        private async Task<(bool result, string message)> ValidateData(SlotSelection_DTO dto)
-        {
+private async Task<(bool result, string message)> ValidateData(SlotSelection_DTO dto)
+{
 
-            if (!(await _context.Patients.AnyAsync(p => p.Id == dto.PatientId)))
-            {
-                return (false, "Specified patient id does not exist.");
-            }
+    if (!(await _context.Patients.AnyAsync(p => p.Id == dto.PatientId)))
+    {
+        return (false, "Specified patient id does not exist.");
+    }
 
-            if (!(await _context.Beds.AnyAsync(b => b.Id == dto.BedId)))
-            {
-                return (false, "Specified bed id does not exist.");
-            }
+    if (!(await _context.Beds.AnyAsync(b => b.Id == dto.BedId)))
+    {
+        return (false, "Specified bed id does not exist.");
+    }
 
-            return (true, string.Empty);
-        }
+    return (true, string.Empty);
+}
     }
 }

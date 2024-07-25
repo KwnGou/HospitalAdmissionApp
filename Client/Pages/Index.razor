@@ -103,7 +103,7 @@ else
         if (selectedDiseaseId.HasValue && selectedPatientId.HasValue)
         {
             patientAndDisease = false;
-            bedsGrid = await Http.GetFromJsonAsync<Bed_GridDTO[]>("api/Beds");
+            bedsGrid = await Http.GetFromJsonAsync<Bed_GridDTO[]>($"api/Beds/AvailableBedsForPatient?p={selectedPatientId}&d={selectedDiseaseId}");
             StateHasChanged();
         }
     }

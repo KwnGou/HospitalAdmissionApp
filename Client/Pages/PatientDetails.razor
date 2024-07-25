@@ -18,72 +18,95 @@
 }
 else
 {
-    <div class="row">
-        <div class="col-md-2 offset-md-1 col-sm-12">
-            Name:
-        </div>
-        <div class="col-md-9 col-sm-12">
-            @DTO.Name
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-2 offset-md-1 col-sm-12">
-            Surname:
-        </div>
-        <div class="col-md-9 col-sm-12">
-            @DTO.Surname
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-2 offset-md-1 col-sm-12">
-            Identity card:
-        </div>
-        <div class="col-md-9 col-sm-12">
-            @DTO.PatientIdentityCard
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-2 offset-md-1 col-sm-12">
-            Date of birth:
-        </div>
-        <div class="col-md-9 col-sm-12">
-            @DTO.DateOfBirth
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-2 offset-md-1 col-sm-12">
-            Age:
-        </div>
-        <div class="col-md-9 col-sm-12">
-            @DTO.Age
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-2 offset-md-1 col-sm-12">
-            Sex:
-        </div>
-        <div class="col-md-9 col-sm-12">
-            @DTO.SexText
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-2 offset-md-1 col-sm-12">
-            Insurance class:
-        </div>
-        <div class="col-md-9 col-sm-12">
-            @DTO.InsuranceText
-        </div>
-    </div>
-    <div class="row">
-        <div class="col-md-12 col-sm-12">
-            Patient details:
-        </div>
-        <div class="col-md-12 col-sm-12">
-            @DTO.PatientDetails
-        </div>
-    </div>
-    <br/>
-    <RadzenButton Icon="add_circle_outline" Text="Edit Patient" ButtonStyle="ButtonStyle.Primary" Click="@(async (args) => await Edit())"/>
+
+        <RadzenTabs TItem="Patient_DetailsDTO" Data="@DTO">
+        <Tabs>
+            <RadzenTabsItem Text="Main">
+                <div class="row">
+                    <div class="col-md-2 offset-md-1 col-sm-12">
+                        Name:
+                    </div>
+                    <div class="col-md-9 col-sm-12">
+                        @DTO.Name
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-2 offset-md-1 col-sm-12">
+                        Surname:
+                    </div>
+                    <div class="col-md-9 col-sm-12">
+                        @DTO.Surname
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-2 offset-md-1 col-sm-12">
+                        Identity card:
+                    </div>
+                    <div class="col-md-9 col-sm-12">
+                        @DTO.PatientIdentityCard
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-2 offset-md-1 col-sm-12">
+                        Date of birth:
+                    </div>
+                    <div class="col-md-9 col-sm-12">
+                        @DTO.DateOfBirth
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-2 offset-md-1 col-sm-12">
+                        Age:
+                    </div>
+                    <div class="col-md-9 col-sm-12">
+                        @DTO.Age
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-2 offset-md-1 col-sm-12">
+                        Sex:
+                    </div>
+                    <div class="col-md-9 col-sm-12">
+                        @DTO.SexText
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-2 offset-md-1 col-sm-12">
+                        Insurance class:
+                    </div>
+                    <div class="col-md-9 col-sm-12">
+                        @DTO.InsuranceText
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-12 col-sm-12">
+                        Patient details:
+                    </div>
+                    <div class="col-md-12 col-sm-12">
+                        @DTO.PatientDetails
+                    </div>
+                </div>
+                <br />
+                <RadzenButton Icon="add_circle_outline" Text="Edit Patient" ButtonStyle="ButtonStyle.Primary" Click="@(async (args) => await Edit())" />
+            </RadzenTabsItem>
+            <RadzenTabsItem Text="Admission history">
+                <RadzenDataGrid @ref="@grid" AllowFiltering="@true" AllowSorting="@true" AllowColumnResize="@true" PageSize="10" AllowPaging="@true" ColumnWidth="100px"
+                                FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterMode="FilterMode.Simple" PagerHorizontalAlign="HorizontalAlign.Center"
+                                Data="@slots" TItem="Slot_GridDTO">
+                    <Columns>
+                        <RadzenDataGridColumn TItem="Slot_GridDTO" Title="Room Number" TextAlign="TextAlign.Left" Filterable="@true" Property="@(nameof(Slot_GridDTO.RoomNumber))" />
+                        <RadzenDataGridColumn TItem="Slot_GridDTO" Title="Admission Date" TextAlign="TextAlign.Left" Filterable="@true" Property="@(nameof(Slot_GridDTO.AdmissionDate))"/>
+                        <RadzenDataGridColumn TItem="Slot_GridDTO" Title="Dismiss Date" TextAlign="TextAlign.Left" Filterable="@true" Property="@(nameof(Slot_GridDTO.ReleaseDate))"/>
+                        <RadzenDataGridColumn TItem="Slot_GridDTO" Title="Disease" TextAlign="TextAlign.Left" Filterable="@true" Property="@(nameof(Slot_GridDTO.DiseaseName))"/>
+                    </Columns>
+
+                </RadzenDataGrid>
+            </RadzenTabsItem>
+            
+            <br />
+        </Tabs>
+    </RadzenTabs>
+    
 }
 @code
 {
@@ -92,10 +115,13 @@ else
 
     private Patient_DetailsDTO DTO;
 
+    private RadzenDataGrid<Slot_GridDTO> grid;
+    private Slot_GridDTO[] slots;
 
     protected override async Task OnInitializedAsync()
     {
         DTO = await Http.GetFromJsonAsync<Patient_DetailsDTO>($"api/patients/{Id}");
+        slots = await Http.GetFromJsonAsync<Slot_GridDTO[]>($"api/Slots/{Id}");
     }
 
     private async Task Edit()

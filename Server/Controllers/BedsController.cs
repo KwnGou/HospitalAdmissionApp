@@ -10,6 +10,7 @@ using AutoMapper;
 using HospitalAdmissionApp.Shared.DTOs;
 using HospitalAdmissionApp.Client.Pages;
 using Humanizer;
+using Microsoft.Data.SqlClient;
 
 namespace HospitalAdmissionApp.Server.Controllers
 {
@@ -54,6 +55,59 @@ namespace HospitalAdmissionApp.Server.Controllers
             var mapped = _mapper.Map<IEnumerable<Bed_GridDTO>>(result);
 
             return Ok(mapped);
+        }
+
+        // GET: api/AvailableBedsForPatient
+        [HttpGet("AvailableBedsForPatient", Name = nameof(AvailableBedsForPatient))]
+        public async Task<ActionResult<IEnumerable<Bed_GridDTO>>> AvailableBedsForPatient(
+            [FromQuery(Name = "p")] int? patientId,
+            [FromQuery(Name = "d")] int? diseaseId)
+        {
+            if (_context.Beds == null)
+            {
+                return NotFound();
+            }
+            if (!patientId.HasValue || !diseaseId.HasValue)
+            {
+                return BadRequest("Patient and Disease ID are required");
+            }
+            var patient = await _context.Patients.FindAsync(patientId.Value);
+            if (patient == null)
+            {
+                return NotFound($"Patient with ID {patientId.Value} not found");
+            }
+
+
+            List<object> parameters = new() { 
+                new SqlParameter("PatientInsurance", patient.Insurance),
+                new SqlParameter("PatientDisease", diseaseId.Value)}; 
+            var cmdTxt = @"  
+SELECT 
+	R1.Id AS RoomId, R1.RoomNumber AS RoomNumber 
+	, B1.Id AS BedId, B1.BedInfo AS BedInfo
+FROM ( 
+	SELECT B.RoomId AS RoomId 
+	FROM Beds B
+	GROUP By B.RoomId
+	HAVING COUNT(B.RoomId) >= @PatientInsurance) B2
+INNER JOIN Beds B1 ON B1.RoomId = B2.RoomId
+INNER JOIN Rooms R1 ON B1.RoomId = R1.Id
+INNER JOIN Clinics C1 ON R1.ClinicId = C1.Id
+INNER JOIN Diseases D1 ON D1.ClinicId = C1.Id
+LEFT OUTER JOIN Slots S1 ON S1.BedId = B1.Id
+WHERE 
+	D1.Id = @PatientDisease AND D1.ClinicId = R1.ClinicId AND R1.Id = B1.RoomId  
+	AND S1.BedId IS NULL
+	OR B1.Id IN (SELECT S2.BedId FROM Slots S2 JOIN Patients P2 ON S2.PatientId = P2.Id WHERE S2.ReleaseDate IS NOT NULL)";
+            try
+            {
+                var result = await _context.SelectableBeds.FromSqlRaw(cmdTxt, parameters.ToArray()).ToListAsync();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            { 
+                return BadRequest($"{ex.Message} : {ex?.InnerException?.Message}");  
+            }
         }
 
         // GET: api/Beds/5
