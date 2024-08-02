@@ -1,17 +1,10 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
+﻿using AutoMapper;
+using HospitalAdmissionApp.Server.Model;
+using HospitalAdmissionApp.Shared;
+using HospitalAdmissionApp.Shared.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using HospitalAdmissionApp.Server.Model;
-using AutoMapper;
-using HospitalAdmissionApp.Shared.DTOs;
-using HospitalAdmissionApp.Shared;
-using Microsoft.Build.Framework;
-using HospitalAdmissionApp.Client.Pages;
-using static System.Reflection.Metadata.BlobBuilder;
+using System.Text.RegularExpressions;
 
 namespace HospitalAdmissionApp.Server.Controllers
 {
@@ -22,12 +15,18 @@ namespace HospitalAdmissionApp.Server.Controllers
         private readonly DataContext _context;
         private readonly IMapper _mapper;
         private readonly IConfiguration _config;
+        private readonly string _patientIdCardRx;
+        private readonly string _patientIdCardRxError;
 
         public PatientsController(DataContext context, IMapper mapper, IConfiguration config)
         {
             _context = context;
             _mapper = mapper;
             _config = config;
+
+            var appOptions = _config.GetSection(AppConfigOptions.AppConfigOptionsSection).Get<AppConfigOptions>();
+            _patientIdCardRx = appOptions.PatientIdCardRx;
+            _patientIdCardRxError = appOptions.PatientIdCardRxError;
         }
 
         // GET: api/Patients
@@ -45,7 +44,7 @@ namespace HospitalAdmissionApp.Server.Controllers
 
             return Ok(mapped);
         }
-        // GET: api/patientsForAdmission
+        // GET: api/Patients/patientsForAdmission
         [HttpGet("patientsForAdmission", Name = nameof(GetPatientsForAdmission))]
         public async Task<ActionResult<IEnumerable<PatientSelection_DTO>>> GetPatientsForAdmission()
         {
@@ -96,13 +95,24 @@ WHERE NOT Slots.ReleaseDate IS NULL
 
             var mapped = _mapper.Map<Patient_DetailsDTO>(result);
 
-            // fix other visual data
             var sexOptions = _config.GetSection(EnumOption.SexOptionsString).Get<EnumOption[]>();
             var insuranceOptions = _config.GetSection(EnumOption.InsuranceOptionsString).Get<EnumOption[]>();
 
             mapped.SexText = sexOptions.First(s => s.Id == mapped.Sex).Text;
             mapped.InsuranceText = insuranceOptions.First(i => i.Id == mapped.Insurance).Text;
             mapped.Age = DateTime.Now.Year - mapped.DateOfBirth.Year;
+
+            mapped.History = new List<PatientHistory_GridDTO>();
+
+            var patientHistory = await _context.Slots
+                .Include(s => s.Disease)
+                .Include(s => s.Bed)
+                .ThenInclude(b => b.Room)
+                .Where(s => s.PatientId == id).OrderBy(s => s.AdmissionDate).ToArrayAsync();
+
+            var mapHistory = _mapper.Map<PatientHistory_GridDTO[]>(patientHistory);
+
+            mapped.History.AddRange(mapHistory);
 
             return Ok(mapped);
         }
@@ -132,6 +142,7 @@ WHERE NOT Slots.ReleaseDate IS NULL
 
             dto.Surname.Trim();
 
+            
             if (string.IsNullOrWhiteSpace(dto.PatientIdentityCard))
             {
                 return Problem("Patient PatientIdentityCard is required.");
@@ -139,24 +150,17 @@ WHERE NOT Slots.ReleaseDate IS NULL
 
             dto.PatientIdentityCard.Trim();
 
+            if (!Regex.IsMatch(dto.PatientIdentityCard, _patientIdCardRx))
+            {
+                return BadRequest(_patientIdCardRxError);
+            }
+
             _context.Entry(dto).State = EntityState.Modified;
 
             try
             {
                 await _context.SaveChangesAsync();
             }
-            //the application is not going to support multiple users the following exception is not needed at the moment 
-            //catch (DbUpdateConcurrencyException)
-            //{
-            //    if (!DiseasExists(id))
-            //    {
-            //        return NotFound();
-            //    }
-            //    else
-            //    {
-            //        throw;
-            //    }
-            //}
             catch (DbUpdateException ex)
             {
                 return BadRequest($"{ex.Message}: {ex?.InnerException?.Message}");
@@ -196,7 +200,12 @@ WHERE NOT Slots.ReleaseDate IS NULL
             }
 
             dto.PatientIdentityCard.Trim();
-            // propably have to modify this if we proceed with the memory feature
+
+            if (!Regex.IsMatch(dto.PatientIdentityCard, _patientIdCardRx))
+            {
+                return BadRequest(_patientIdCardRxError);
+            }
+            
             if (await _context.Patients.AnyAsync(p => p.PatientIdentityCard == dto.PatientIdentityCard))
             {
                 return Problem("Specified Identity Card is already in use.");
@@ -255,5 +264,127 @@ WHERE NOT Slots.ReleaseDate IS NULL
             return (_context.Patients?.Any(e => e.Id == id)).GetValueOrDefault();
         }
 
+        private bool SlotExists(int id)
+        {
+            return (_context.Slots?.Any(e => e.Id == id)).GetValueOrDefault();
+        }
+
+        // PUT: api/Patients/DismissPatient
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPut("DismissPatient", Name = nameof(DismissPatient))]
+        public async Task<IActionResult> DismissPatient(SlotSelection_DTO dto)
+        {
+            if (_context.Slots == null)
+            {
+                return Problem("Entity set 'DataContext.Slots'  is null.");
+            }
+
+            //Data Validation (ID existence)
+            var (res, msg) = await ValidateDataSlot(dto);
+            if (!res)
+            {
+                return BadRequest(msg);
+            }
+
+            var entity = await _context.Slots.FindAsync(dto.Id);
+            if (entity == null)
+            {
+                return BadRequest("Specified slot does not exist.");
+            }
+
+            // check combination 
+            if (entity.PatientId != dto.PatientId || entity.BedId != dto.BedId || entity.DiseaseId != dto.DiseaseId)
+            {
+                return BadRequest("Invalid data");
+            }
+
+            // check if patient has been dismissed already
+            if (entity.ReleaseDate != null)
+            {
+
+                return BadRequest("Specified patient has been dismissed.");
+            }
+
+            _context.Entry(entity).State = EntityState.Modified;
+            entity.ReleaseDate = DateTimeOffset.Now;
+
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex)
+            {
+                return BadRequest($"{ex.Message}: {ex?.InnerException?.Message}");
+            }
+            return NoContent();
+        }
+
+        // POST: api/Patients/AdmitPatient
+        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
+        [HttpPost("AdmitPatient", Name = nameof(AdmitPatient))]
+        public async Task<ActionResult<Slot>> AdmitPatient(SlotSelection_DTO dto)
+        {
+            if (_context.Slots == null)
+            {
+                return Problem("Entity set 'DataContext.Slots'  is null.");
+            }
+            var entity = _mapper.Map<Slot>(dto);
+
+            //Data Validation
+            var (res, msg) = await ValidateDataSlot(dto);
+            if (!res)
+            {
+                return BadRequest(msg);
+            }
+            // check if patient has been hospitalized already
+            if (await _context.Slots.AnyAsync(s => s.ReleaseDate == null && s.PatientId == dto.PatientId))
+            {
+
+                return BadRequest("Specified patient has been admitted.");
+            }
+            entity.AdmissionDate = DateTimeOffset.Now;
+
+            _context.Slots.Add(entity);
+
+            try
+            {
+                await _context.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex)
+            {
+                return BadRequest($"{ex.Message}: {ex?.InnerException?.Message}");
+            }
+
+            await _context.Entry(entity).Reference(s => s.Patient)
+                .LoadAsync();
+            await _context.Entry(entity).Reference(s => s.Bed)
+               .LoadAsync();
+
+            var mapped = _mapper.Map<Slot_GridDTO>(entity);
+
+            return CreatedAtAction("GetSlot", new { id = mapped.Id }, mapped);
+        }
+
+        private async Task<(bool result, string message)> ValidateDataSlot(SlotSelection_DTO dto)
+        {
+
+            if (!(await _context.Patients.AnyAsync(p => p.Id == dto.PatientId)))
+            {
+                return (false, "Specified patient id does not exist.");
+            }
+
+            if (!(await _context.Beds.AnyAsync(b => b.Id == dto.BedId)))
+            {
+                return (false, "Specified bed id does not exist.");
+            }
+
+            if (!(await _context.Diseases.AnyAsync(d => d.Id == dto.DiseaseId)))
+            {
+                return (false, "Specified disease id does not exist.");
+            }
+
+            return (true, string.Empty);
+        }
     }
 }

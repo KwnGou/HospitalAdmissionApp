@@ -31,5 +31,6 @@ namespace HospitalAdmissionApp.Shared.DTOs
 
         public string? PatientDetails { get; set; }
 
+        public List<PatientHistory_GridDTO> History { get; set; }
     }
 }

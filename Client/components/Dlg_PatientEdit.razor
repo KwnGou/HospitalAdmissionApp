@@ -60,6 +60,7 @@ else
                     </div>
                     <div class="col-md-9 col-sm-12">
                         <RadzenTextBox @bind-Value="DTO.PatientIdentityCard" Name="Patient identity card" />
+                        <RadzenRegexValidator Component="Patient identity Card" Pattern="@_patientIdCardRx" Text="@_patientIdCardRxError"/>
                     </div>
                 </div>
             </div>
@@ -96,7 +97,8 @@ else
     private EnumOption[] insuranceOptions;
 
     private AppConfigOptions appConfigOptions;
-
+    private string _patientIdCardRx;
+    private string _patientIdCardRxError;
 
     protected override async Task OnInitializedAsync()
     {
@@ -104,6 +106,8 @@ else
         appConfigOptions = await Http.GetFromJsonAsync<AppConfigOptions>("api/Tools/AppConfigOptions");
         sexOptions = await Http.GetFromJsonAsync<EnumOption[]>("api/EnumOptions/sexOptions");
         insuranceOptions = await Http.GetFromJsonAsync<EnumOption[]>("api/EnumOptions/insuranceOptions");
+        _patientIdCardRx = appConfigOptions.PatientIdCardRx;
+        _patientIdCardRxError = appConfigOptions.PatientIdCardRxError;
         isLoading = false;
         StateHasChanged();
 
@@ -137,7 +141,7 @@ else
             if (IsNew)
             {
                 var newPatient = await res.Content.ReadFromJsonAsync<Patient_DetailsDTO>();
-                NavMan.NavigateTo($"patientDetails/{newPatient.Id}/{false}");
+                NavMan.NavigateTo($"patientDetails/{newPatient.Id}");
             }
 
         }

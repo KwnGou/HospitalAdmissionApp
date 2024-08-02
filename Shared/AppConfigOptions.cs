@@ -10,8 +10,8 @@ namespace HospitalAdmissionApp.Shared
     {
         public const string AppConfigOptionsSection = "AppConfigOptions";
 
-        public string PatientIdRx { get; set; }
-        public  string PatientIdRxError { get; set; }
+        public string PatientIdCardRx { get; set; }
+        public  string PatientIdCardRxError { get; set; }
 
     }
 }

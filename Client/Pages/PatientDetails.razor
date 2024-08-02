@@ -19,7 +19,7 @@
 else
 {
 
-        <RadzenTabs TItem="Patient_DetailsDTO" Data="@DTO">
+    <RadzenTabs TItem="Patient_DetailsDTO" Data="@DTO">
         <Tabs>
             <RadzenTabsItem Text="Main">
                 <div class="row">
@@ -92,21 +92,22 @@ else
             <RadzenTabsItem Text="Admission history">
                 <RadzenDataGrid @ref="@grid" AllowFiltering="@true" AllowSorting="@true" AllowColumnResize="@true" PageSize="10" AllowPaging="@true" ColumnWidth="100px"
                                 FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterMode="FilterMode.Simple" PagerHorizontalAlign="HorizontalAlign.Center"
-                                Data="@slots" TItem="Slot_GridDTO">
+                                Data="@DTO.History" TItem="PatientHistory_GridDTO">
                     <Columns>
-                        <RadzenDataGridColumn TItem="Slot_GridDTO" Title="Room Number" TextAlign="TextAlign.Left" Filterable="@true" Property="@(nameof(Slot_GridDTO.RoomNumber))" />
-                        <RadzenDataGridColumn TItem="Slot_GridDTO" Title="Admission Date" TextAlign="TextAlign.Left" Filterable="@true" Property="@(nameof(Slot_GridDTO.AdmissionDate))"/>
-                        <RadzenDataGridColumn TItem="Slot_GridDTO" Title="Dismiss Date" TextAlign="TextAlign.Left" Filterable="@true" Property="@(nameof(Slot_GridDTO.ReleaseDate))"/>
-                        <RadzenDataGridColumn TItem="Slot_GridDTO" Title="Disease" TextAlign="TextAlign.Left" Filterable="@true" Property="@(nameof(Slot_GridDTO.DiseaseName))"/>
+                        <RadzenDataGridColumn TItem="PatientHistory_GridDTO" Title="Room Number" TextAlign="TextAlign.Left" Filterable="@true" Property="@(nameof(PatientHistory_GridDTO.RoomNumber))" />
+                        <RadzenDataGridColumn TItem="PatientHistory_GridDTO" Title="Admission Date" TextAlign="TextAlign.Left" Filterable="@true" Property="@(nameof(PatientHistory_GridDTO.AdmissionDate))" />
+                        <RadzenDataGridColumn TItem="PatientHistory_GridDTO" Title="Dismiss Date" TextAlign="TextAlign.Left" Filterable="@true" Property="@(nameof(PatientHistory_GridDTO.ReleaseDate))" />
+                        <RadzenDataGridColumn TItem="PatientHistory_GridDTO" Title="Disease" TextAlign="TextAlign.Left" Filterable="@true" Property="@(nameof(PatientHistory_GridDTO.DiseaseName))" />
                     </Columns>
-
                 </RadzenDataGrid>
+                <br />
+                <RadzenButton Icon="danger" Text="Dismiss Patient" ButtonStyle="ButtonStyle.Primary" Click="@(async (args) => await Dismiss())" />
             </RadzenTabsItem>
-            
+
             <br />
         </Tabs>
     </RadzenTabs>
-    
+
 }
 @code
 {
@@ -115,13 +116,11 @@ else
 
     private Patient_DetailsDTO DTO;
 
-    private RadzenDataGrid<Slot_GridDTO> grid;
-    private Slot_GridDTO[] slots;
+    private RadzenDataGrid<PatientHistory_GridDTO> grid;
 
     protected override async Task OnInitializedAsync()
     {
         DTO = await Http.GetFromJsonAsync<Patient_DetailsDTO>($"api/patients/{Id}");
-        slots = await Http.GetFromJsonAsync<Slot_GridDTO[]>($"api/Slots/{Id}");
     }
 
     private async Task Edit()
@@ -139,5 +138,34 @@ else
             dlgParams,
             new DialogOptions() { Width = "1000px", Height = "800px" }
         );
+    }
+
+    private async Task Dismiss()
+    {
+        var currSlot = new SlotSelection_DTO();
+        currSlot.PatientId = DTO.Id;
+        currSlot.Id = DTO.History.First(p => p.ReleaseDate == null).Id;
+        currSlot.BedId = DTO.History.First(p => p.ReleaseDate == null).BedId;
+        currSlot.DiseaseId = DTO.History.First(p => p.ReleaseDate == null).DiseaseId;
+
+        var res = await Http.PutAsJsonAsync<SlotSelection_DTO>($"api/Patients/DismissPatient", currSlot);
+
+        if (!res.IsSuccessStatusCode)
+        {
+            var errMsg = await res.Content.ReadAsStringAsync();
+            NotificationSvc.Notify(
+                NotificationSeverity.Error,
+                "Saving failed",
+                errMsg,
+                8000);
+            Console.WriteLine($"Save error: {errMsg}");
+        }
+        else
+        {
+            DlgService.Close(true);
+            DTO = await Http.GetFromJsonAsync<Patient_DetailsDTO>($"api/patients/{Id}");
+            StateHasChanged();
+            
+        }
     }
 }

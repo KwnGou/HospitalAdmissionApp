@@ -8,10 +8,13 @@ namespace HospitalAdmissionApp.Shared.DTOs
 {
     public class SlotSelection_DTO
     {
+        public int Id { get; set; }
+
         public int PatientId { get; set; }
 
         public int BedId { get; set; }
 
         public int DiseaseId { get; set; }
+
     }
 }

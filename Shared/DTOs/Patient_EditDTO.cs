@@ -14,7 +14,9 @@ namespace HospitalAdmissionApp.Shared.DTOs
 
         [Required]
         [MaxLength(50)]
+//        [RegularExpression(@"^[a-zA-Z]{1}[0-9]{3}$")]
         public string PatientIdentityCard { get; set; } = null!;
+        
 
         [Required]
         [MaxLength(50)]

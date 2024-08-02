@@ -74,13 +74,17 @@ namespace HospitalAdmissionApp.Server.Controllers
             var patient = await _context.Patients.FindAsync(patientId.Value);
             if (patient == null)
             {
-                return NotFound($"Patient with ID {patientId.Value} not found");
+                return NotFound($"Patient with Id {patientId.Value} not found");
             }
-
+            var disease = await _context.Diseases.FindAsync(diseaseId.Value);
+            if (disease == null)
+            {
+                return NotFound($"Disease with Id {diseaseId.Value} not found");
+            }
 
             List<object> parameters = new() { 
                 new SqlParameter("PatientInsurance", patient.Insurance),
-                new SqlParameter("PatientDisease", diseaseId.Value)}; 
+                new SqlParameter("PatientDisease", disease.Id)}; 
             var cmdTxt = @"  
 SELECT 
 	R1.Id AS RoomId, R1.RoomNumber AS RoomNumber 

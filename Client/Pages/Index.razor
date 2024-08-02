@@ -16,6 +16,7 @@
 }
 else
 {
+   
     <div>
         <div class="col-md-3 col-sm-12">
             Patients for admission
@@ -47,12 +48,9 @@ else
     <br />
     <RadzenButton Icon="add_circle_outline" Text="Show available beds" ButtonStyle="ButtonStyle.Success" Click="@(async(args) => ActivateBedsGrid())" />
     <div>
-        <div class="col-md-3 col-sm-12">
-            Available beds
-        </div>
         <div class="col-md-9 col-sm-12">
             <RadzenDropDownDataGrid TValue="int?" @bind-Value=@selectedBedId Data=@bedsGrid ValueProperty="@nameof(Bed_GridDTO.Id)"
-                                    AllowColumnResize="true" AllowFilteringByAllStringColumns="true" Disabled="patientAndDisease">
+                                    AllowColumnResize="true" AllowFilteringByAllStringColumns="true" Visible="patientAndDisease">
                 <ValueTemplate Context="bDTO">
                     @($"{bDTO.RoomNumber} {bDTO.BedInfo}")
                 </ValueTemplate>
@@ -71,7 +69,7 @@ else
 @code
 {
     private bool isLoading;
-    private bool patientAndDisease = true;
+    private bool patientAndDisease = false;
 
     public PatientSelection_DTO[] patientsForAdmissionGrid;
     public PatientSelection_DTO selectedPatient;
@@ -102,7 +100,7 @@ else
     {
         if (selectedDiseaseId.HasValue && selectedPatientId.HasValue)
         {
-            patientAndDisease = false;
+            patientAndDisease = true;
             bedsGrid = await Http.GetFromJsonAsync<Bed_GridDTO[]>($"api/Beds/AvailableBedsForPatient?p={selectedPatientId}&d={selectedDiseaseId}");
             StateHasChanged();
         }
@@ -134,7 +132,7 @@ else
         dto.BedId = selectedBedId.Value;
         dto.DiseaseId = selectedDiseaseId.Value;
 
-        res = await Http.PostAsJsonAsync<SlotSelection_DTO>("api/Slots", dto);
+        res = await Http.PostAsJsonAsync<SlotSelection_DTO>("api/Patients/AdmitPatient", dto);
 
         if (!res.IsSuccessStatusCode)
         {
