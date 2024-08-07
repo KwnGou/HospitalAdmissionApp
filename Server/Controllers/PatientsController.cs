@@ -363,7 +363,8 @@ WHERE NOT Slots.ReleaseDate IS NULL
 
             var mapped = _mapper.Map<Slot_GridDTO>(entity);
 
-            return CreatedAtAction("GetSlot", new { id = mapped.Id }, mapped);
+            return CreatedAtAction("GetPatient", new { id = mapped.PatientId }, mapped);
+            //            return NoContent();
         }
 
         private async Task<(bool result, string message)> ValidateDataSlot(SlotSelection_DTO dto)

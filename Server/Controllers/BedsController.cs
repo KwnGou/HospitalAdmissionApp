@@ -61,7 +61,8 @@ namespace HospitalAdmissionApp.Server.Controllers
         [HttpGet("AvailableBedsForPatient", Name = nameof(AvailableBedsForPatient))]
         public async Task<ActionResult<IEnumerable<Bed_GridDTO>>> AvailableBedsForPatient(
             [FromQuery(Name = "p")] int? patientId,
-            [FromQuery(Name = "d")] int? diseaseId)
+            [FromQuery(Name = "d")] int? diseaseId,
+            [FromQuery(Name = "downgrade")] bool? downgrade)
         {
             if (_context.Beds == null)
             {
@@ -84,8 +85,12 @@ namespace HospitalAdmissionApp.Server.Controllers
 
             List<object> parameters = new() { 
                 new SqlParameter("PatientInsurance", patient.Insurance),
-                new SqlParameter("PatientDisease", disease.Id)}; 
-            var cmdTxt = @"  
+                new SqlParameter("PatientDisease", disease.Id)};
+
+            var cmdTxt = "";
+            if (downgrade.HasValue && downgrade.Value) 
+            {
+                cmdTxt += @"  
 SELECT 
 	R1.Id AS RoomId, R1.RoomNumber AS RoomNumber 
 	, B1.Id AS BedId, B1.BedInfo AS BedInfo
@@ -103,6 +108,29 @@ WHERE
 	D1.Id = @PatientDisease AND D1.ClinicId = R1.ClinicId AND R1.Id = B1.RoomId  
 	AND S1.BedId IS NULL
 	OR B1.Id IN (SELECT S2.BedId FROM Slots S2 JOIN Patients P2 ON S2.PatientId = P2.Id WHERE S2.ReleaseDate IS NOT NULL)";
+            }
+            else // not present or false
+            {
+                cmdTxt += @"  
+SELECT 
+	R1.Id AS RoomId, R1.RoomNumber AS RoomNumber 
+	, B1.Id AS BedId, B1.BedInfo AS BedInfo
+FROM ( 
+	SELECT B.RoomId AS RoomId 
+	FROM Beds B
+	GROUP By B.RoomId
+	HAVING COUNT(B.RoomId) = @PatientInsurance) B2
+INNER JOIN Beds B1 ON B1.RoomId = B2.RoomId
+INNER JOIN Rooms R1 ON B1.RoomId = R1.Id
+INNER JOIN Clinics C1 ON R1.ClinicId = C1.Id
+INNER JOIN Diseases D1 ON D1.ClinicId = C1.Id
+LEFT OUTER JOIN Slots S1 ON S1.BedId = B1.Id
+WHERE 
+	D1.Id = @PatientDisease AND D1.ClinicId = R1.ClinicId AND R1.Id = B1.RoomId  
+	AND S1.BedId IS NULL
+	OR B1.Id IN (SELECT S2.BedId FROM Slots S2 JOIN Patients P2 ON S2.PatientId = P2.Id WHERE S2.ReleaseDate IS NOT NULL)";
+            }
+
             try
             {
                 var result = await _context.SelectableBeds.FromSqlRaw(cmdTxt, parameters.ToArray()).ToListAsync();
@@ -141,7 +169,7 @@ WHERE
         [HttpPut("{id}")]
         public async Task<IActionResult> PutBed(int id, Bed_GridDTO dto)
         {
-            if (id != dto.Id)
+            if (id != dto.BedId)
             {
                 return BadRequest();
             }
@@ -214,7 +242,7 @@ WHERE
 
             var mapped = _mapper.Map<Bed_GridDTO>(entity);
 
-            return CreatedAtAction("GetBed", new { id = mapped.Id }, mapped);
+            return CreatedAtAction("GetBed", new { id = mapped.BedId }, mapped);
         }
 
         // DELETE: api/Beds/5

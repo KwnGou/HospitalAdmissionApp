@@ -10,7 +10,7 @@ namespace HospitalAdmissionApp.Shared.DTOs
     public class Bed_GridDTO
     {
         [Key]
-        public int Id { get; set; }
+        public int BedId { get; set; }
 
         public int RoomId { get; set; }
 

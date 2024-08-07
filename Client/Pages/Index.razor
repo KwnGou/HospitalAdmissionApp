@@ -16,16 +16,16 @@
 }
 else
 {
-   
-    <div>
+
+    <div class="row">
         <div class="col-md-3 col-sm-12">
             Patients for admission
         </div>
         <div class="col-md-9 col-sm-12">
-            <RadzenDropDownDataGrid TValue="int?" @bind-Value="@selectedPatientId" Data=@patientsForAdmissionGrid ValueProperty="@nameof(PatientSelection_DTO.Id)"
-                                    AllowColumnResize="true" AllowFilteringByAllStringColumns="true" AllowClear="@true">
+            <RadzenDropDownDataGrid TValue="int?" Data="@patientsForAdmission" @bind-Value="@selectedPatientId" ValueProperty="@nameof(PatientSelection_DTO.Id)"
+                                    AllowColumnResize="true" AllowFilteringByAllStringColumns="true" AllowClear="@true" Change="@(async(args) => await DeactivateBedsGrid())">
                 <ValueTemplate Context="pDTO">
-                    @($"{pDTO.Surname} {pDTO.Name}")
+                    @($"{pDTO.Name} {pDTO.Surname}")
                 </ValueTemplate>
                 <Columns>
                     <RadzenDropDownDataGridColumn Property="@nameof(PatientSelection_DTO.Name)" Title="Name" Width="100px" />
@@ -36,21 +36,31 @@ else
         </div>
     </div>
     <br />
-    <div>
+    <div class="row">
         <div class="col-md-3 col-sm-12">
             Select disease
         </div>
         <div class="col-md-9 col-sm-12">
-            <RadzenDropDown TValue="int?" Data="@diseases" @ref="diseasesGrid" @bind-SelectedItem="@selectedDisease" @bind-Value="@selectedDiseaseId"
-                            ValueProperty="@(nameof(Disease_GridDTO.Id))" TextProperty="@nameof(Disease_GridDTO.Name)" />
+            <RadzenDropDown TValue="int?" Data="@diseases" @bind-SelectedItem="@selectedDisease" @bind-Value="@selectedDiseaseId"
+                            ValueProperty="@(nameof(Disease_GridDTO.Id))" TextProperty="@nameof(Disease_GridDTO.Name)" Change="@(async(args) => await DeactivateBedsGrid())" />
         </div>
     </div>
     <br />
-    <RadzenButton Icon="add_circle_outline" Text="Show available beds" ButtonStyle="ButtonStyle.Success" Click="@(async(args) => ActivateBedsGrid())" />
-    <div>
+    <div class="row">
+        <div class="col-md-3 col-sm-12">
+            Allow downgrade?
+        </div>
         <div class="col-md-9 col-sm-12">
-            <RadzenDropDownDataGrid TValue="int?" @bind-Value=@selectedBedId Data=@bedsGrid ValueProperty="@nameof(Bed_GridDTO.Id)"
-                                    AllowColumnResize="true" AllowFilteringByAllStringColumns="true" Visible="patientAndDisease">
+            <RadzenSwitch Name="downgradeSwitch" @bind-Value="downgradeBool" Change="@(args => OnChange(args, "down"))" />
+        </div>
+
+        <RadzenButton Icon="add_circle_outline" Text="Show available beds" ButtonStyle="ButtonStyle.Success" Click="@(async(args) => await ActivateBedsGrid())" />
+    </div>
+    <br />
+    <div class="row">
+        <div class="col-md-9 col-sm-12">
+            <RadzenDropDownDataGrid TValue="int?" Data="@availableBeds" @bind-Value="@selectedBedId" ValueProperty="@nameof(Bed_GridDTO.BedId)" @ref="@bedGrid"
+                                    AllowColumnResize="true" AllowFilteringByAllStringColumns="true" Visible="patientAndDisease" OpenOnFocus="@true">
                 <ValueTemplate Context="bDTO">
                     @($"{bDTO.RoomNumber} {bDTO.BedInfo}")
                 </ValueTemplate>
@@ -63,34 +73,38 @@ else
         </div>
     </div>
     <br />
-    <RadzenButton Icon="add_circle_outline" Text="Admit patient" ButtonStyle="ButtonStyle.Success" Click="@(async(args) => Admit())" />
-    <RadzenButton Icon="add_circle_outline" Text="Add New Patient" ButtonStyle="ButtonStyle.Success" Click="@(async(args) => Add())" />
+    <RadzenButton Icon="add_circle_outline" Text="Admit patient" ButtonStyle="ButtonStyle.Success" Click="@(async(args) => await Admit())" />
+    <RadzenButton Icon="add_circle_outline" Text="Add New Patient" ButtonStyle="ButtonStyle.Success" Click="@(async(args) => await Add())" />
 }
 @code
 {
     private bool isLoading;
     private bool patientAndDisease = false;
 
-    public PatientSelection_DTO[] patientsForAdmissionGrid;
+    private bool downgradeBool;
+
+    public PatientSelection_DTO[] patientsForAdmission;
     public PatientSelection_DTO selectedPatient;
     public int? selectedPatientId;
 
-
-    private RadzenDropDown<int?> diseasesGrid;
     private Disease_GridDTO[] diseases;
     private object selectedDisease;
     private int? selectedDiseaseId;
 
-    public Bed_GridDTO[] bedsGrid;
+    public Bed_GridDTO[] availableBeds;
     public Bed_GridDTO selectedBed;
     public int? selectedBedId;
+
+    private RadzenDropDownDataGrid<int?> bedGrid;
 
     protected override async Task OnInitializedAsync()
     {
         isLoading = true;
 
-        patientsForAdmissionGrid = await Http.GetFromJsonAsync<PatientSelection_DTO[]>("api/Patients/patientsForAdmission");
+        patientsForAdmission = await Http.GetFromJsonAsync<PatientSelection_DTO[]>("api/Patients/patientsForAdmission");
         diseases = await Http.GetFromJsonAsync<Disease_GridDTO[]>("api/Diseas");
+
+        downgradeBool = true;
 
         isLoading = false;
         StateHasChanged();
@@ -101,9 +115,15 @@ else
         if (selectedDiseaseId.HasValue && selectedPatientId.HasValue)
         {
             patientAndDisease = true;
-            bedsGrid = await Http.GetFromJsonAsync<Bed_GridDTO[]>($"api/Beds/AvailableBedsForPatient?p={selectedPatientId}&d={selectedDiseaseId}");
+            availableBeds = await Http.GetFromJsonAsync<Bed_GridDTO[]>($"api/Beds/AvailableBedsForPatient?p={selectedPatientId}&d={selectedDiseaseId}&downgrade={downgradeBool}");
+            await bedGrid.FocusAsync();
             StateHasChanged();
         }
+    }
+
+    private async Task DeactivateBedsGrid()
+    {
+        patientAndDisease = false;
     }
 
     private async Task Add()
@@ -123,14 +143,23 @@ else
         );
     }
 
+    void OnChange(bool? downgradeBool, string downgradeSwitch)
+    {
+        NotificationSvc.Notify(NotificationSeverity.Info, "Downgrade", (downgradeBool.HasValue && downgradeBool.Value) ? "Downgrade allowed" : "Downgrade NOT allowed");
+    }
+
     private async Task Admit()
     {
 
         HttpResponseMessage res;
         var dto = new SlotSelection_DTO();
-        dto.PatientId = selectedPatientId.Value;
-        dto.BedId = selectedBedId.Value;
-        dto.DiseaseId = selectedDiseaseId.Value;
+        if (selectedPatientId.HasValue && selectedBedId.HasValue && selectedDiseaseId.HasValue)
+        {
+            dto.PatientId = selectedPatientId.Value;
+            dto.BedId = selectedBedId.Value;
+            dto.DiseaseId = selectedDiseaseId.Value;
+            Console.WriteLine("bed id " + dto.BedId + "slot id " + dto.Id);
+        }
 
         res = await Http.PostAsJsonAsync<SlotSelection_DTO>("api/Patients/AdmitPatient", dto);
 

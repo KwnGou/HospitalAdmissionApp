@@ -8,6 +8,6 @@ namespace HospitalAdmissionApp.Server.Model
     {
 		public virtual DbSet<PatientSelection_DTO> SelectablePatients { get; set; }
 
-        public virtual DbSet<BedSelection_DTO> SelectableBeds { get; set; }
+        public virtual DbSet<Bed_GridDTO> SelectableBeds { get; set; }
     }
 }
