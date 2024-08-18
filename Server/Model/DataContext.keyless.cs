@@ -9,5 +9,9 @@ namespace HospitalAdmissionApp.Server.Model
 		public virtual DbSet<PatientSelection_DTO> SelectablePatients { get; set; }
 
         public virtual DbSet<Bed_GridDTO> SelectableBeds { get; set; }
+
+        public virtual DbSet<RoomInfo_DTO> RoomUsedBedsInfo { get; set; }
+
+        public virtual DbSet<Patient_GridDTO> PatientsList { get; set; }
     }
 }

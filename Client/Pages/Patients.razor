@@ -20,12 +20,19 @@ else
                     FilterCaseSensitivity="FilterCaseSensitivity.CaseInsensitive" FilterMode="FilterMode.Simple" PagerHorizontalAlign="HorizontalAlign.Center"
                     Data="@patients" TItem="Patient_GridDTO">
         <Columns>
-            <RadzenDataGridColumn TItem="Patient_GridDTO" Title="Patient Name" TextAlign="TextAlign.Left" Filterable="@true" Property="@(nameof(Patient_GridDTO.Name))" />
-            <RadzenDataGridColumn TItem="Patient_GridDTO" Title="Patient Surname" TextAlign="TextAlign.Left" Filterable="@true" Property="@(nameof(Patient_GridDTO.Surname))" />
-            <RadzenDataGridColumn TItem="Patient_GridDTO" Title="Patient Identity Card" TextAlign="TextAlign.Left" Filterable="@true" Property="@(nameof(Patient_GridDTO.PatientIdentityCard))" />
-            <RadzenDataGridColumn TItem="Patient_GridDTO" Filterable="@false" Sortable="@false" TextAlign="TextAlign.Center">
+            <RadzenDataGridColumn TItem="Patient_GridDTO" Title="Name" TextAlign="TextAlign.Left" Filterable="@true" Property="@(nameof(Patient_GridDTO.Name))" />
+            <RadzenDataGridColumn TItem="Patient_GridDTO" Title="Surname" TextAlign="TextAlign.Left" Filterable="@true" Property="@(nameof(Patient_GridDTO.Surname))" />
+            <RadzenDataGridColumn TItem="Patient_GridDTO" Title="Hospitalized?" TextAlign="TextAlign.Left" Filterable="@true" Property="@(nameof(Patient_GridDTO.Hospitalized))" >
                 <Template Context="dto">
-                    <RadzenButton Icon="edit" Size="ButtonSize.Small" ButtonStyle="ButtonStyle.Primary" Click="@(async (args) => await Details(dto.Id))" />
+                    @if (dto.Hospitalized)
+                    {
+                        <span style="color:darkgreen;font-weight:bold">Yes</span>
+                    }
+                </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="Patient_GridDTO" Title="Identity Card" TextAlign="TextAlign.Left" Filterable="@true" Property="@(nameof(Patient_GridDTO.PatientIdentityCard))">
+                <Template Context="dto">
+                    <RadzenLink Text="@dto.PatientIdentityCard" Path=@($"patientDetails/{dto.Id}") />
                 </Template>
             </RadzenDataGridColumn>
             <RadzenDataGridColumn TItem="Patient_GridDTO" Filterable="@false" Sortable="@false" TextAlign="TextAlign.Center">
@@ -43,7 +50,7 @@ else
 {
     private RadzenDataGrid<Patient_GridDTO> grid;
     private Patient_GridDTO[] patients;
-
+    private PatientSelection_DTO[] patientsForAdmission;
 
     protected override async Task OnInitializedAsync()
     {
@@ -59,6 +66,7 @@ else
         {
             {"DTO", dto},
             {"IsNew", true },
+            {"RediredtToAdmit", false}
         };
 
         var res = await DlgService.OpenAsync<Dlg_PatientEdit>(

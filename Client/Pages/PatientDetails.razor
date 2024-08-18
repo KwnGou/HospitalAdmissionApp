@@ -95,8 +95,10 @@ else
                                 Data="@DTO.History" TItem="PatientHistory_GridDTO">
                     <Columns>
                         <RadzenDataGridColumn TItem="PatientHistory_GridDTO" Title="Room Number" TextAlign="TextAlign.Left" Filterable="@true" Property="@(nameof(PatientHistory_GridDTO.RoomNumber))" />
-                        <RadzenDataGridColumn TItem="PatientHistory_GridDTO" Title="Admission Date" TextAlign="TextAlign.Left" Filterable="@true" Property="@(nameof(PatientHistory_GridDTO.AdmissionDate))" />
-                        <RadzenDataGridColumn TItem="PatientHistory_GridDTO" Title="Dismiss Date" TextAlign="TextAlign.Left" Filterable="@true" Property="@(nameof(PatientHistory_GridDTO.ReleaseDate))" />
+                        <RadzenDataGridColumn TItem="PatientHistory_GridDTO" Title="Admission Date" TextAlign="TextAlign.Left" Filterable="@true" Property="@(nameof(PatientHistory_GridDTO.AdmissionDate))"
+                                              FormatString="{0:d MMM yy}" />
+                        <RadzenDataGridColumn TItem="PatientHistory_GridDTO" Title="Dismiss Date" TextAlign="TextAlign.Left" Filterable="@true" Property="@(nameof(PatientHistory_GridDTO.ReleaseDate))"
+                                              FormatString="{0:d MMM yy}" />
                         <RadzenDataGridColumn TItem="PatientHistory_GridDTO" Title="Disease" TextAlign="TextAlign.Left" Filterable="@true" Property="@(nameof(PatientHistory_GridDTO.DiseaseName))" />
                     </Columns>
                 </RadzenDataGrid>
@@ -165,7 +167,7 @@ else
             DlgService.Close(true);
             DTO = await Http.GetFromJsonAsync<Patient_DetailsDTO>($"api/patients/{Id}");
             StateHasChanged();
-            
+
         }
     }
 }

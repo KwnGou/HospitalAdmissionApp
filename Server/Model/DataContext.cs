@@ -24,6 +24,7 @@ public partial class DataContext : DbContext
 
     public virtual DbSet<Slot> Slots { get; set; }
 
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Bed>(entity =>
@@ -81,8 +82,6 @@ public partial class DataContext : DbContext
 
         modelBuilder.Entity<Slot>(entity =>
         {
-            entity.HasIndex(e => new { e.PatientId, e.BedId }, "IX_Slots_Unique_Patient_Bed").IsUnique();
-
             entity.HasOne(d => d.Bed).WithMany(p => p.Slots)
                 .HasForeignKey(d => d.BedId)
                 .OnDelete(DeleteBehavior.ClientSetNull)

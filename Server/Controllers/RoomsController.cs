@@ -8,6 +8,10 @@ using Microsoft.EntityFrameworkCore;
 using HospitalAdmissionApp.Server.Model;
 using AutoMapper;
 using HospitalAdmissionApp.Shared.DTOs;
+using HospitalAdmissionApp.Client.Pages;
+using Microsoft.Data.SqlClient;
+using System.Linq.Dynamic.Core;
+using HospitalAdmissionApp.Shared;
 
 namespace HospitalAdmissionApp.Server.Controllers
 {
@@ -17,11 +21,13 @@ namespace HospitalAdmissionApp.Server.Controllers
     {
         private readonly DataContext _context;
         private readonly IMapper _mapper;
+        private readonly IConfiguration _config;
 
-        public RoomsController(DataContext context, IMapper mapper)
+        public RoomsController(DataContext context, IMapper mapper, IConfiguration config)
         {
             _context = context;
             _mapper = mapper;
+            _config = config;
         }
 
         // GET: api/Rooms
@@ -75,6 +81,85 @@ namespace HospitalAdmissionApp.Server.Controllers
             return Ok(mapped);
         }
 
+        // GET: api/Rooms/5/roomInfo
+        [HttpGet("roomInfo", Name = nameof(GetRoomInfo))]
+        public async Task<ActionResult<string>> GetRoomInfo(
+            [FromQuery(Name = "b")] int? bedId)
+        {
+            if (_context.Beds == null)
+            {
+                return NotFound();
+            }
+
+            if (_context.Rooms == null)
+            {
+                return NotFound();
+            }
+
+            if (bedId == null)
+            {
+                return BadRequest("Bed id is required.");
+            }
+
+            var selectedBed = await _context.Beds.FindAsync(bedId);
+
+            if (selectedBed == null)
+            {
+                return NotFound();
+            }
+
+            List<object> parameters = new() {
+                new SqlParameter("SelectedBedId", selectedBed.Id)};
+
+            var cmdTxt = @"
+SELECT B.BedInfo AS BedInfo, P.DateOfBirth AS PatientDateOfBirth, P.Sex AS PatientSex, D.[Name] AS PatientDiseaseName
+FROM Slots S
+JOIN Patients P ON S.PatientId = P.Id
+JOIN Beds B ON S.BedId = B.Id
+JOIN Diseases D ON S.DiseaseId = D.Id
+WHERE S.ReleaseDate IS NULL AND B.RoomId = (SELECT RoomId FROM Beds WHERE Id = @SelectedBedId)
+";
+
+
+            try
+            {
+                var result = await _context.RoomUsedBedsInfo.FromSqlRaw(cmdTxt, parameters.ToArray()).ToListAsync();
+
+                var head = "This room has:\n\n";
+                if (result.Count > 0)
+                {
+                    var resStr = result.Aggregate("",
+                        (current, next) => current + $"Bed: {next.BedInfo}, Disease: {next.PatientDiseaseName}, Sex: {SexName(next.PatientSex)}, Age: {PatientAge(next.PatientDateOfBirth)}\n");
+
+                    return Ok(head + resStr);
+                }
+                else
+                {
+                    return Ok("No other patients in the room");
+                }
+
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"{ex.Message}: {ex?.InnerException?.Message}");
+            }
+        }
+
+        #region Helpers
+        
+        private string SexName(int sexId)
+        {
+            var sexOptions = _config.GetSection(EnumOption.SexOptionsString).Get<EnumOption[]>();
+            return sexOptions.First(s => s.Id == sexId).Text;
+        }
+
+        private static int PatientAge(DateTime birthDate)
+        {
+            return DateTime.Now.Year - birthDate.Year;            
+        }
+
+        #endregion
+
         // PUT: api/Rooms/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]
@@ -101,18 +186,6 @@ namespace HospitalAdmissionApp.Server.Controllers
             {
                 await _context.SaveChangesAsync();
             }
-            //the application is not going to support multiple users the following exception is not needed at the moment 
-            //catch (DbUpdateConcurrencyException)
-            //{
-            //    if (!DiseasExists(id))
-            //    {
-            //        return NotFound();
-            //    }
-            //    else
-            //    {
-            //        throw;
-            //    }
-            //}
             catch (DbUpdateException ex)
             {
                 return BadRequest($"{ex.Message}: {ex?.InnerException?.Message}");

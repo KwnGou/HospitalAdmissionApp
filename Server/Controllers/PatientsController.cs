@@ -37,12 +37,34 @@ namespace HospitalAdmissionApp.Server.Controllers
             {
                 return NotFound();
             }
-            List<Patient> result;
-            result = await _context.Patients
-                .ToListAsync();
-            var mapped = _mapper.Map<IEnumerable<Patient_GridDTO>>(result);
+            //List<Patient> result;
 
-            return Ok(mapped);
+            var cmdTxt = @"
+SELECT P1.Id AS Id, P1.[Name] AS [Name], P1.Surname AS Surname, P1.PatientIdentityCard AS PatientIdentityCard, CASE WHEN EXISTS 
+	(SELECT P2.Id AS Id, P2.[Name] AS [Name], P2.Surname AS Surname, P2.PatientIdentityCard AS PatientIdentityCard
+	FROM Patients P2
+	JOIN Slots S1 ON P2.Id = S1.PatientId
+	WHERE P1.Id = P2.ID AND S1.ReleaseDate IS NULL
+	)
+THEN CAST(1 AS BIT)
+ELSE CAST(0 AS BIT) 
+END AS Hospitalized
+FROM PATIENTS P1
+";
+            try
+            {
+                var result = await _context.PatientsList.FromSqlRaw(cmdTxt).ToListAsync();
+                return Ok(result);
+            }
+            catch (Exception ex) 
+            {
+                return BadRequest($"{ex.Message}: {ex?.InnerException?.Message}");
+            }
+            //result = await _context.Patients
+            //    .ToListAsync();
+            //var mapped = _mapper.Map<IEnumerable<Patient_GridDTO>>(result);
+
+            //return Ok(mapped);
         }
         // GET: api/Patients/patientsForAdmission
         [HttpGet("patientsForAdmission", Name = nameof(GetPatientsForAdmission))]
@@ -57,13 +79,19 @@ namespace HospitalAdmissionApp.Server.Controllers
             var cmdTxt = @"
 SELECT P1.Id AS Id, P1.[Name] AS [Name], P1.Surname AS Surname, P1.PatientIdentityCard AS PatientIdentityCard
 FROM Patients P1
-WHERE P1.Id NOT IN (SELECT Slots.PatientId FROM Slots)
-	UNION
+WHERE P1.Id NOT IN (
+	SELECT Slots.PatientId FROM Slots
+	)
+  UNION
 SELECT P2.Id AS Id, P2.[Name] AS [Name], P2.Surname AS Surname, P2.PatientIdentityCard AS PatientIdentityCard
 FROM Patients P2
-JOIN Slots
-ON P2.Id = Slots.PatientId
-WHERE NOT Slots.ReleaseDate IS NULL
+WHERE NOT P2.Id IN (
+	SELECT P3.Id AS Id
+	FROM Patients P3
+	JOIN Slots S2
+	ON P3.Id = S2.PatientId
+	WHERE S2.ReleaseDate IS NULL
+	)
 ";
 
             try
@@ -341,7 +369,7 @@ WHERE NOT Slots.ReleaseDate IS NULL
             if (await _context.Slots.AnyAsync(s => s.ReleaseDate == null && s.PatientId == dto.PatientId))
             {
 
-                return BadRequest("Specified patient has been admitted.");
+                return BadRequest("Specified patient is already hospitalised.");
             }
             entity.AdmissionDate = DateTimeOffset.Now;
 
@@ -364,7 +392,6 @@ WHERE NOT Slots.ReleaseDate IS NULL
             var mapped = _mapper.Map<Slot_GridDTO>(entity);
 
             return CreatedAtAction("GetPatient", new { id = mapped.PatientId }, mapped);
-            //            return NoContent();
         }
 
         private async Task<(bool result, string message)> ValidateDataSlot(SlotSelection_DTO dto)

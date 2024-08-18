@@ -87,13 +87,13 @@ namespace HospitalAdmissionApp.Server.Controllers
                 new SqlParameter("PatientInsurance", patient.Insurance),
                 new SqlParameter("PatientDisease", disease.Id)};
 
-            var cmdTxt = "";
+            var cmdTxt = string.Empty;
             if (downgrade.HasValue && downgrade.Value) 
             {
-                cmdTxt += @"  
+                cmdTxt = @"  
 SELECT 
+	DISTINCT(B1.Id) AS BedId, B1.BedInfo AS BedInfo,
 	R1.Id AS RoomId, R1.RoomNumber AS RoomNumber 
-	, B1.Id AS BedId, B1.BedInfo AS BedInfo
 FROM ( 
 	SELECT B.RoomId AS RoomId 
 	FROM Beds B
@@ -105,16 +105,15 @@ INNER JOIN Clinics C1 ON R1.ClinicId = C1.Id
 INNER JOIN Diseases D1 ON D1.ClinicId = C1.Id
 LEFT OUTER JOIN Slots S1 ON S1.BedId = B1.Id
 WHERE 
-	D1.Id = @PatientDisease AND D1.ClinicId = R1.ClinicId AND R1.Id = B1.RoomId  
-	AND S1.BedId IS NULL
+	(D1.Id = @PatientDisease AND D1.ClinicId = R1.ClinicId AND R1.Id = B1.RoomId)  
 	OR B1.Id IN (SELECT S2.BedId FROM Slots S2 JOIN Patients P2 ON S2.PatientId = P2.Id WHERE S2.ReleaseDate IS NOT NULL)";
             }
             else // not present or false
             {
-                cmdTxt += @"  
+                cmdTxt = @"  
 SELECT 
+	DISTINCT(B1.Id) AS BedId, B1.BedInfo AS BedInfo,
 	R1.Id AS RoomId, R1.RoomNumber AS RoomNumber 
-	, B1.Id AS BedId, B1.BedInfo AS BedInfo
 FROM ( 
 	SELECT B.RoomId AS RoomId 
 	FROM Beds B
@@ -126,8 +125,7 @@ INNER JOIN Clinics C1 ON R1.ClinicId = C1.Id
 INNER JOIN Diseases D1 ON D1.ClinicId = C1.Id
 LEFT OUTER JOIN Slots S1 ON S1.BedId = B1.Id
 WHERE 
-	D1.Id = @PatientDisease AND D1.ClinicId = R1.ClinicId AND R1.Id = B1.RoomId  
-	AND S1.BedId IS NULL
+	(D1.Id = @PatientDisease AND D1.ClinicId = R1.ClinicId AND R1.Id = B1.RoomId)  
 	OR B1.Id IN (SELECT S2.BedId FROM Slots S2 JOIN Patients P2 ON S2.PatientId = P2.Id WHERE S2.ReleaseDate IS NOT NULL)";
             }
 
@@ -189,18 +187,6 @@ WHERE
             {
                 await _context.SaveChangesAsync();
             }
-            //the application is not going to support multiple users the following exception is not needed at the moment 
-            //catch (DbUpdateConcurrencyException)
-            //{
-            //    if (!DiseasExists(id))
-            //    {
-            //        return NotFound();
-            //    }
-            //    else
-            //    {
-            //        throw;
-            //    }
-            //}
             catch (DbUpdateException ex)
             {
                 return BadRequest($"{ex.Message}: {ex?.InnerException?.Message}");

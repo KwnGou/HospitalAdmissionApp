@@ -21,5 +21,7 @@ namespace HospitalAdmissionApp.Shared.DTOs
         public string Surname { get; set; } = null!;
 
         public string PatientIdentityCard { get; set; } = null!;
+
+        public bool Hospitalized { get; set; }
     }
 }

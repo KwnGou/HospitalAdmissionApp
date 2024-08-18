@@ -1,4 +1,5 @@
 ﻿@page "/patientEdit"
+
 @using HospitalAdmissionApp.Shared.DTOs
 @using HospitalAdmissionApp.Shared
 @inject HttpClient Http
@@ -33,7 +34,7 @@ else
                     Date of birth
                 </div>
                 <div class="col-md-9 col-sm-12">
-                    <RadzenDatePicker TValue="DateTime" DateFormat="d MM yy" Max="@(DateTime.Today)"
+                    <RadzenDatePicker TValue="DateTime" DateFormat="dd-MM-yyyy" Max="@(DateTime.Today)"
                                       @bind-Value="@DTO.DateOfBirth" />
                 </div>
             </div>
@@ -60,7 +61,7 @@ else
                     </div>
                     <div class="col-md-9 col-sm-12">
                         <RadzenTextBox @bind-Value="DTO.PatientIdentityCard" Name="Patient identity card" />
-                        <RadzenRegexValidator Component="Patient identity card" Pattern="@_patientIdCardRx" Text="@_patientIdCardRxError"/>
+                        <RadzenRegexValidator Component="Patient identity card" Pattern="@_patientIdCardRx" Text="@_patientIdCardRxError" />
                     </div>
                 </div>
             </div>
@@ -92,6 +93,8 @@ else
     [Parameter]
     public bool IsNew { get; set; }
 
+    [Parameter]
+    public bool RediredtToAdmit { get; set; }
 
     private EnumOption[] sexOptions;
     private EnumOption[] insuranceOptions;
@@ -109,8 +112,6 @@ else
         _patientIdCardRx = appConfigOptions.PatientIdCardRx;
         _patientIdCardRxError = appConfigOptions.PatientIdCardRxError;
         isLoading = false;
-        StateHasChanged();
-
     }
 
     private async Task Save(Patient_EditDTO dto)
@@ -141,14 +142,16 @@ else
             if (IsNew)
             {
                 var newPatient = await res.Content.ReadFromJsonAsync<Patient_DetailsDTO>();
-                NavMan.NavigateTo($"patientDetails/{newPatient.Id}");
+                if (RediredtToAdmit)
+                {
+                    NavMan.NavigateTo($"/?pId={newPatient.Id}");
+                }
+                else
+                {
+                    NavMan.NavigateTo($"patientDetails/{newPatient.Id}");
+                }
             }
-
         }
     }
 
-    private async Task DeletePatient(Patient_DetailsDTO patDto)
-    {
-
-    }
 }
