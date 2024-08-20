@@ -160,6 +160,73 @@ WHERE S.ReleaseDate IS NULL AND B.RoomId = (SELECT RoomId FROM Beds WHERE Id = @
 
         #endregion
 
+        // GET : api/Rooms/roomDetails
+        [HttpGet("roomDetails", Name = nameof(GetRoomDetails))]
+        public async Task<ActionResult<IEnumerable<RoomDetails_DTO>>>GetRoomDetails(
+            [FromQuery(Name = "c")] int? clinicId)
+        {
+            if (_context.Clinics == null)
+            {
+                return NotFound();
+            }
+            if (_context.Rooms == null)
+            {
+                return NotFound();
+            }
+            if (_context.Beds == null)
+            {
+                return NotFound();
+            }
+
+            if (clinicId == null) 
+            {
+                return BadRequest();
+            }
+
+            var selectedClinic = await _context.Clinics.FindAsync(clinicId);
+
+            if (selectedClinic == null)
+            {
+                return NotFound();
+            }
+
+            List<object> parameters = new() {
+                new SqlParameter("SelectedClinicId", selectedClinic.Id)};
+
+
+            var cmdTxt = @"
+SELECT R.Id AS RoomId, R.RoomNumber AS RoomNumber,
+	B.Id AS BedId, B.BedInfo AS BedInfo,
+	P.Id AS PatientId, P.[Name] AS PatientName, P.Surname AS PatientSurname,
+	D.[Name] AS DiseaseName,
+	CASE WHEN EXISTS 
+	(
+		SELECT S.Id FROM Slots S WHERE S.ReleaseDate IS NULL AND B.Id = S.BedId
+	)
+THEN CAST (1 AS BIT)
+ELSE CAST (0 AS BIT)
+END AS Occupied
+FROM Rooms R
+JOIN Beds B ON R.Id = B.RoomId
+LEFT OUTER JOIN (SELECT S1.Id, S1.BedId, S1.PatientId, S1.DiseaseId FROM SLOTS S1 WHERE S1.ReleaseDate IS NULL) S2 ON S2.BedId = B.Id
+LEFT OUTER JOIN Patients P ON S2.PatientId = P.Id
+LEFT OUTER JOIN Diseases D ON S2.DiseaseId = D.Id
+WHERE R.ClinicId = @SelectedClinicId
+ORDER BY R.Id, B.Id
+";
+
+            try
+            {
+                var result = await _context.RoomDetailsList.FromSqlRaw(cmdTxt, parameters.ToArray()).ToListAsync();
+                return Ok(result);
+
+            }
+            catch (Exception ex)
+            {
+                return BadRequest($"{ex.Message}: {ex?.InnerException?.Message}");
+            }
+        }
+
         // PUT: api/Rooms/5
         // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
         [HttpPut("{id}")]

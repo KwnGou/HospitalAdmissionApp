@@ -23,68 +23,70 @@ else
         <Tabs>
             <RadzenTabsItem Text="Main">
                 <div class="row">
-                    <div class="col-md-2 offset-md-1 col-sm-12">
+                    <div class="col-md-2 col-sm-12">
                         Name:
                     </div>
-                    <div class="col-md-9 col-sm-12">
+                    <div class="col-md-10 col-sm-12">
                         @DTO.Name
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-md-2 offset-md-1 col-sm-12">
+                    <div class="col-md-2 col-sm-12">
                         Surname:
                     </div>
-                    <div class="col-md-9 col-sm-12">
+                    <div class="col-md-10 col-sm-12">
                         @DTO.Surname
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-md-2 offset-md-1 col-sm-12">
+                    <div class="col-md-2 col-sm-12">
                         Identity card:
                     </div>
-                    <div class="col-md-9 col-sm-12">
+                    <div class="col-md-10 col-sm-12">
                         @DTO.PatientIdentityCard
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-md-2 offset-md-1 col-sm-12">
+                    <div class="col-md-2 col-sm-12">
                         Date of birth:
                     </div>
-                    <div class="col-md-9 col-sm-12">
+                    <div class="col-md-10 col-sm-12">
                         @DTO.DateOfBirth
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-md-2 offset-md-1 col-sm-12">
+                    <div class="col-md-2 col-sm-12">
                         Age:
                     </div>
-                    <div class="col-md-9 col-sm-12">
+                    <div class="col-md-10 col-sm-12">
                         @DTO.Age
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-md-2 offset-md-1 col-sm-12">
+                    <div class="col-md-2 col-sm-12">
                         Sex:
                     </div>
-                    <div class="col-md-9 col-sm-12">
+                    <div class="col-md-10 col-sm-12">
                         @DTO.SexText
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-md-2 offset-md-1 col-sm-12">
+                    <div class="col-md-2 col-sm-12">
                         Insurance class:
                     </div>
-                    <div class="col-md-9 col-sm-12">
+                    <div class="col-md-10 col-sm-12">
                         @DTO.InsuranceText
                     </div>
                 </div>
                 <div class="row">
-                    <div class="col-md-12 col-sm-12">
+                    <div class="col-md-2 col-sm-12">
                         Patient details:
                     </div>
-                    <div class="col-md-12 col-sm-12">
+                </div>
+                <div class="row">
+                    <textarea class="col-md-6 col-sm-12" style="width:60%;height:300px" readonly>
                         @DTO.PatientDetails
-                    </div>
+                    </textarea>
                 </div>
                 <br />
                 <RadzenButton Icon="add_circle_outline" Text="Edit Patient" ButtonStyle="ButtonStyle.Primary" Click="@(async (args) => await Edit())" />
@@ -97,7 +99,7 @@ else
                         <RadzenDataGridColumn TItem="PatientHistory_GridDTO" Title="Room Number" TextAlign="TextAlign.Left" Filterable="@true" Property="@(nameof(PatientHistory_GridDTO.RoomNumber))" />
                         <RadzenDataGridColumn TItem="PatientHistory_GridDTO" Title="Admission Date" TextAlign="TextAlign.Left" Filterable="@true" Property="@(nameof(PatientHistory_GridDTO.AdmissionDate))"
                                               FormatString="{0:d MMM yy}" />
-                        <RadzenDataGridColumn TItem="PatientHistory_GridDTO" Title="Dismiss Date" TextAlign="TextAlign.Left" Filterable="@true" Property="@(nameof(PatientHistory_GridDTO.ReleaseDate))"
+                        <RadzenDataGridColumn TItem="PatientHistory_GridDTO" Title="Dismissal Date" TextAlign="TextAlign.Left" Filterable="@true" Property="@(nameof(PatientHistory_GridDTO.ReleaseDate))"
                                               FormatString="{0:d MMM yy}" />
                         <RadzenDataGridColumn TItem="PatientHistory_GridDTO" Title="Disease" TextAlign="TextAlign.Left" Filterable="@true" Property="@(nameof(PatientHistory_GridDTO.DiseaseName))" />
                     </Columns>
@@ -127,7 +129,7 @@ else
 
     private async Task Edit()
     {
-        var dto = new Patient_EditDTO();
+        var dto = Patient_EditDTO.CreateFromDetails(DTO);
 
         var dlgParams = new Dictionary<string, object>()
         {

@@ -1,12 +1,12 @@
-﻿@page "/maingrid"
+﻿@page "/rooms"
 @using HospitalAdmissionApp.Shared.DTOs
 @inject HttpClient Http
 @inject NotificationService NotificationSvc
 
 
-<PageTitle>Clinics</PageTitle>
+<PageTitle>Rooms</PageTitle>
 
-<h1> Clinics</h1>
+<h1>Rooms</h1>
 
 @if (isLoading)
 {
@@ -14,36 +14,36 @@
 }
 else
 {
-    <div class="rz-p-sm-12 rz-text-align-left">
-        <RadzenLabel Text="Select Clinic" Component="DropDownBindValue" Style="margin-right: 8px; vertical-align: middle;" />
-        <RadzenDropDown TValue="int?" Data="@clinics" @ref="clinicsGrid" @bind-SelectedItem="@selectedClinic" @bind-Value="@selectedClinicId"
-                        ValueProperty="@(nameof(Clinic_GridDTO.Id))" TextProperty="@nameof(clinicsGrid.Name)" />
+    <div class="row">
+        <div class="col-md-4 col-offset-4 col-sm-12">
+            <RadzenLabel Text="Select Clinic" Component="DropDownBindValue" />
+            <RadzenDropDown TValue="int?" Data="@clinics" @ref="clinicsGrid" @bind-Value="@selectedClinicId" Change="@(async (args) => await ActivateRoomsGrid())"
+                            ValueProperty="@(nameof(Clinic_GridDTO.Id))" TextProperty="@nameof(Clinic_GridDTO.Name)" />
+        </div>
     </div>
-    <div class="rz-p-sm-12 rz-text-align-left">
-    <RadzenDataGrid @ref="roomsGrid" AllowFiltering="true" AllowPaging="true" PageSize="5" AllowSorting="true" RowRender="@RowRender" ExpandMode="@expandMode"
-                    Data="@rooms" TItem="Room_GridDTO">
-        <Template Context="room">
-            <RadzenDataGrid TItem="Bed_GridDTO" Data="beds" AllowSorting="true" AllowColumnResize="true">
-                <Columns>
-                    <RadzenDataGridColumn TItem="Bed_GridDTO" Property="@nameof(Bed_GridDTO.BedInfo)" Title="Bed information"></RadzenDataGridColumn>
-                </Columns>
+    <br />
+    <div>
+        <RadzenDataGrid @ref="roomsGrid" AllowFiltering="true" AllowPaging="true" PageSize="5" AllowSorting="true" RowRender="@RowRender" ExpandMode="@expandMode"
+                        Data="@rooms" TItem="RoomDetails_DTO">
+            <Template Context="room">
+                <RadzenDataGrid TItem="RoomDetails_DTO" Data="rooms" AllowSorting="true" AllowColumnResize="true">
                     <Columns>
-                        <RadzenDataGridColumn TItem="Patient_GridDTO" Property="@nameof(Patient_GridDTO.Name)" Title="Patient Name">
-                            <Template Context="dto">
-                                @($"{dto.Surname} {dto.Name}")
+                        <RadzenDataGridColumn TItem="RoomDetails_DTO" Property="@nameof(RoomDetails_DTO.BedInfo)" Title="Bed information" />
+                        <RadzenDataGridColumn TItem="RoomDetails_DTO" Property="@nameof(RoomDetails_DTO.PatientId)" Title="Patient Name">
+                            <Template Context="pDTO">
+                                @($"{pDTO.PatientName} {pDTO.PatientSurname}")
+                                <RadzenLink Text="@($"{pDTO.PatientName} {pDTO.PatientSurname}")" Path=@($"patientDetails/{pDTO.PatientId}") />
                             </Template>
                         </RadzenDataGridColumn>
+                        <RadzenDataGridColumn TItem="RoomDetails_DTO" Property="@nameof(RoomDetails_DTO.DiseaseName)" Title="Disease" />
                     </Columns>
-            </RadzenDataGrid>
-            <RadzenCard Style="margin-bottom:20px">
-                Room number:
-                <b>@room.RoomNumber</b>
-            </RadzenCard>
-        </Template>
-        <Columns>
-            <RadzenDataGridColumn TItem="Room_GridDTO" Title="Room number" Property="@nameof(Room_GridDTO.RoomNumber)" Width="120px" />
-        </Columns>
-    </RadzenDataGrid>
+                </RadzenDataGrid>
+            </Template>
+            <Columns>
+                <RadzenDataGridColumn TItem="RoomDetails_DTO" Title="Room number" Property="@nameof(RoomDetails_DTO.RoomNumber)" />
+                <RadzenDataGridColumn TItem="RoomDetails_DTO" Title="Occupied" Property="@nameof(RoomDetails_DTO.Occupied)" />
+            </Columns>
+        </RadzenDataGrid>
     </div>
 }
 
@@ -53,14 +53,11 @@ else
 
     private RadzenDropDown<int?> clinicsGrid;
     private Clinic_GridDTO[] clinics;
-    private object selectedClinic;
     private int? selectedClinicId;
 
-    private RadzenDataGrid<Room_GridDTO> roomsGrid;
-    private Room_GridDTO[] rooms;
+    private RadzenDataGrid<RoomDetails_DTO> roomsGrid;
+    private RoomDetails_DTO[] rooms;
 
-    private RadzenDataGrid<Bed_GridDTO> bedsGrid;
-    private Bed_GridDTO[] beds;
 
     [Parameter]
     public RenderFragment<object> DisplayTemplate { get; set; }
@@ -71,11 +68,14 @@ else
         clinics = await Http.GetFromJsonAsync<Clinic_GridDTO[]>("api/clinics");
 
         isLoading = false;
-        StateHasChanged();
+
+    }
+
+    private async Task ActivateRoomsGrid()
+    {
         if (selectedClinicId.HasValue)
         {
-            rooms = await Http.GetFromJsonAsync<Room_GridDTO[]>("api/rooms");
-            beds = await Http.GetFromJsonAsync<Bed_GridDTO[]>("api/beds");
+            rooms = await Http.GetFromJsonAsync<RoomDetails_DTO[]>($"api/rooms/roomDetails?c={selectedClinicId.Value}");
             StateHasChanged();
         }
     }
@@ -98,7 +98,7 @@ else
     }
 
 
-    void RowRender(RowRenderEventArgs<Room_GridDTO> room)
+    void RowRender(RowRenderEventArgs<RoomDetails_DTO> room)
     {
         room.Expandable = room.Expandable;
     }

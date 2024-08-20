@@ -71,7 +71,7 @@ else
     <br />
     <div class="row">
         <div class="col-md-6 col-sm-12">
-            <RadzenDropDownDataGrid TValue="int?" Data="@availableBeds" @bind-Value="@selectedBedId" ValueProperty="@nameof(Bed_GridDTO.BedId)" @ref="@bedGrid"
+            <RadzenDropDownDataGrid TValue="int?" Data="@availableBeds" @bind-Value="@selectedBedId" ValueProperty="@nameof(Bed_GridDTO.BedId)" @ref="@bedGrid" 
                                     AllowColumnResize="true" AllowFilteringByAllStringColumns="true" Visible="patientAndDisease" OpenOnFocus="@true" AllowClear="true"
                                     PageSize="5" >
                 <ValueTemplate Context="bDTO">
@@ -84,13 +84,14 @@ else
             </RadzenDropDownDataGrid>
         </div>
         <div class="col-md-3 col-sm-12">
-            <RadzenButton Icon="add_circle_outline" Text="Show room info" ButtonStyle="ButtonStyle.Info" Click="@(async(args) => await RoomInfo())" Visible="patientAndDisease" />
+            <RadzenButton Icon="add_circle_outline" Text="Show room info" ButtonStyle="ButtonStyle.Info" Click="@(async(args) => await RoomInfo())" Visible="patientAndDisease" 
+                Disabled="SelectRoom()" />
         </div>
     </div>
     <br />
     <div class="row">
         <div class="col-md-3 col-sm-12">
-            <RadzenButton Icon="add_circle_outline" Text="Admit patient" ButtonStyle="ButtonStyle.Success" Click="@(async(args) => await Admit())" />
+            <RadzenButton Icon="add_circle_outline" Text="Admit patient" ButtonStyle="ButtonStyle.Success" Click="@(async(args) => await Admit())" Disabled="SelectRoom()" />
         </div>
     </div>
 
@@ -149,6 +150,14 @@ else
             await bedGrid.FocusAsync();
             StateHasChanged();
         }
+    }
+    private bool SelectRoom()
+    {
+        if (selectedBedId.HasValue)
+        {
+            return false;
+        }
+        return true;
     }
 
     private async Task DeactivateBedsGrid()

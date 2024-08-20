@@ -38,10 +38,10 @@ namespace HospitalAdmissionApp.Server.Controllers
                 return NotFound();
             }
             //List<Patient> result;
-
+            //, P2.[Name] AS [Name], P2.Surname AS Surname, P2.PatientIdentityCard AS PatientIdentityCard not needed? inner select
             var cmdTxt = @"
 SELECT P1.Id AS Id, P1.[Name] AS [Name], P1.Surname AS Surname, P1.PatientIdentityCard AS PatientIdentityCard, CASE WHEN EXISTS 
-	(SELECT P2.Id AS Id, P2.[Name] AS [Name], P2.Surname AS Surname, P2.PatientIdentityCard AS PatientIdentityCard
+	(SELECT P2.Id AS Id
 	FROM Patients P2
 	JOIN Slots S1 ON P2.Id = S1.PatientId
 	WHERE P1.Id = P2.ID AND S1.ReleaseDate IS NULL
