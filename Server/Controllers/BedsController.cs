@@ -105,8 +105,9 @@ INNER JOIN Clinics C1 ON R1.ClinicId = C1.Id
 INNER JOIN Diseases D1 ON D1.ClinicId = C1.Id
 LEFT OUTER JOIN Slots S1 ON S1.BedId = B1.Id
 WHERE 
-	(D1.Id = @PatientDisease AND D1.ClinicId = R1.ClinicId AND R1.Id = B1.RoomId)  
-	OR B1.Id IN (SELECT S2.BedId FROM Slots S2 JOIN Patients P2 ON S2.PatientId = P2.Id WHERE S2.ReleaseDate IS NOT NULL)";
+	(D1.Id = @PatientDisease AND D1.ClinicId = R1.ClinicId AND R1.Id = B1.RoomId AND S1.AdmissionDate IS NULL)  
+	OR B1.Id IN (SELECT S2.BedId FROM Slots S2 JOIN Patients P2 ON S2.PatientId = P2.Id WHERE S2.ReleaseDate IS NOT NULL)
+";
             }
             else // not present or false
             {
@@ -125,7 +126,7 @@ INNER JOIN Clinics C1 ON R1.ClinicId = C1.Id
 INNER JOIN Diseases D1 ON D1.ClinicId = C1.Id
 LEFT OUTER JOIN Slots S1 ON S1.BedId = B1.Id
 WHERE 
-	(D1.Id = @PatientDisease AND D1.ClinicId = R1.ClinicId AND R1.Id = B1.RoomId)  
+	(D1.Id = @PatientDisease AND D1.ClinicId = R1.ClinicId AND R1.Id = B1.RoomId AND S1.AdmissionDate IS NULL)  
 	OR B1.Id IN (SELECT S2.BedId FROM Slots S2 JOIN Patients P2 ON S2.PatientId = P2.Id WHERE S2.ReleaseDate IS NOT NULL)";
             }
 

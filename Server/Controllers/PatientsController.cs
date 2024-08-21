@@ -160,8 +160,9 @@ WHERE NOT P2.Id IN (
             {
                 return Problem("Patient name is required.");
             }
-
+            
             dto.Name.Trim();
+            dto.Name = Thread.CurrentThread.CurrentCulture.TextInfo.ToTitleCase(dto.Name.ToLower());
 
             if (string.IsNullOrWhiteSpace(dto.Surname))
             {
@@ -169,8 +170,8 @@ WHERE NOT P2.Id IN (
             }
 
             dto.Surname.Trim();
+            dto.Surname = Thread.CurrentThread.CurrentCulture.TextInfo.ToTitleCase(dto.Surname.ToLower());
 
-            
             if (string.IsNullOrWhiteSpace(dto.PatientIdentityCard))
             {
                 return Problem("Patient PatientIdentityCard is required.");
@@ -182,8 +183,9 @@ WHERE NOT P2.Id IN (
             {
                 return BadRequest(_patientIdCardRxError);
             }
+            var entity = _mapper.Map<Patient>(dto);
 
-            _context.Entry(dto).State = EntityState.Modified;
+            _context.Entry(entity).State = EntityState.Modified;
 
             try
             {
@@ -214,6 +216,7 @@ WHERE NOT P2.Id IN (
             }
 
             dto.Name.Trim();
+            dto.Name = char.ToUpper(dto.Name[0]) + dto.Name.Substring(1);
 
             if (string.IsNullOrWhiteSpace(dto.Surname))
             {
@@ -221,6 +224,7 @@ WHERE NOT P2.Id IN (
             }
 
             dto.Surname.Trim();
+            dto.Surname = char.ToUpper(dto.Surname[0]) + dto.Surname.Substring(1);
 
             if (string.IsNullOrWhiteSpace(dto.PatientIdentityCard))
             {
@@ -269,7 +273,7 @@ WHERE NOT P2.Id IN (
                 return NotFound();
             }
 
-            if (_context.Slots.Any(s => s.PatientId == id))
+            if (_context.Slots.Any(s => s.PatientId == id && s.ReleaseDate == null))
             {
                 return BadRequest("Patient in use");
             }

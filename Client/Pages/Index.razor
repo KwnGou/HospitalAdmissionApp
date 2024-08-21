@@ -99,8 +99,8 @@ else
 }
 @code
 {
-    [Parameter, SupplyParameterFromQuery(Name = "pId")]
-    public string NewPatientId { get; set; }
+        [Parameter, SupplyParameterFromQuery(Name = "pId")]
+        public string NewPatientId { get; set; }
 
     private bool isLoading;
     private bool patientAndDisease = false;
@@ -148,8 +148,13 @@ else
             patientAndDisease = true;
             availableBeds = await Http.GetFromJsonAsync<Bed_GridDTO[]>($"api/Beds/AvailableBedsForPatient?p={selectedPatientId}&d={selectedDiseaseId}&downgrade={downgradeBool}");
             await bedGrid.FocusAsync();
+            if (availableBeds.Count() == 0)
+            {
+                NotificationSvc.Notify(NotificationSeverity.Warning, "Available beds", "No available beds found", 8000);
+            }
             StateHasChanged();
         }
+
     }
     private bool SelectRoom()
     {
@@ -207,7 +212,6 @@ else
             dto.PatientId = selectedPatientId.Value;
             dto.BedId = selectedBedId.Value;
             dto.DiseaseId = selectedDiseaseId.Value;
-            Console.WriteLine("bed id " + dto.BedId + "slot id " + dto.Id);
         }
 
         res = await Http.PostAsJsonAsync<SlotSelection_DTO>("api/Patients/AdmitPatient", dto);

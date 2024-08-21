@@ -142,6 +142,13 @@ else
             dlgParams,
             new DialogOptions() { Width = "1000px", Height = "800px" }
         );
+
+        var bRes = res as bool?;
+        if (bRes.HasValue && bRes.Value)
+        {
+            DTO = await Http.GetFromJsonAsync<Patient_DetailsDTO>($"api/patients/{Id}");
+            StateHasChanged();
+        }
     }
 
     private async Task Dismiss()
