@@ -1,4 +1,4 @@
-HospitalAdmissionApp is a SPA it was created using Microsoft Visual Studio 2022 Community Edition and Microsoft SQL Server 2019 Developer Edition.
+HospitalAdmissionApp is a SPA (Single Page Application) it was created using Microsoft Visual Studio 2022 Community Edition and Microsoft SQL Server 2019 Developer Edition.
 The main layout of the client is based on the standard application layout of Radzen Blazor Studio application. The application purpose is to admit patients in a
 hospital and store their admission history.
 
