@@ -33,16 +33,6 @@ else
             </div>
             <div class="row">
                 <div class="col-md-3 col-sm-12">
-                    Date of birth:
-                </div>
-                <div class="col-md-9 col-sm-12">
-                    <RadzenDatePicker TValue="DateTime" DateFormat="dd-MM-yyyy" Max="@(DateTime.Today)"
-                                      @bind-Value="@DTO.DateOfBirth" Name="DateOfBirth"/>
-                    <RadzenRequiredValidator Component="DateOfBirth" Text="Date of birth is required" />
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-md-3 col-sm-12">
                     Sex:
                 </div>
                 <div class="col-md-9 col-sm-12">
@@ -68,6 +58,16 @@ else
                 <div class="col-md-9 col-sm-12">
                     <RadzenTextBox @bind-Value="DTO.PatientIdentityCard" Name="PatientIdentityCard" />
                     <RadzenRegexValidator Component="PatientIdentityCard" Pattern="@_patientIdCardRx" Text="@_patientIdCardRxError" />
+                </div>
+            </div>
+            <div class="row">
+                <div class="col-md-3 col-sm-12">
+                    Date of birth:
+                </div>
+                <div class="col-md-9 col-sm-12">
+                    <RadzenDatePicker TValue="DateTime" DateFormat="dd-MM-yyyy" Max="@(DateTime.Today)"
+                                      @bind-Value="@DTO.DateOfBirth" Name="DateOfBirth" />
+                    <RadzenRequiredValidator Component="DateOfBirth" Text="Date of birth is required" />
                 </div>
             </div>
             <div class="row">
