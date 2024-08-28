@@ -53,7 +53,7 @@ Patient details page:
 
 Patient creation/edit dialogue:
 
-![image](https://github.com/user-attachments/assets/51a54c6a-5af5-4cba-a2a4-353f96afa136)
+![image](https://github.com/user-attachments/assets/a3f84a5d-5d2d-4389-ae61-94468ba8644d)
 
 Selected clinic rooms overview:
 
