@@ -20,7 +20,7 @@ Listed below are instructions to build and run this app:
     1. Run the Server project.
 
 P.S.1 The script uses the default locations for the db files (C:\Program Files\Microsoft SQL Server\MSSQL15.MSSQLSERVER\MSSQL\DATA\) if you have a difference on
-configuration either adapt the script or create the db manually and remove the CREATE DABASE statement from the script.
+configuration either adapt the script or create the db manually and remove the CREATE DATABASE statement from the script.
 P.S.2 If you want to configure the clinics / diseases / rooms / beds provided bellow is the data generation script (`DataGen.sql`).
 
 ### Screenshots:
